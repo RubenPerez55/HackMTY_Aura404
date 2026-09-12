@@ -76,6 +76,9 @@ export default function App() {
   const [resetSuccess, setResetSuccess] = useState(false);
 
   const unsubscribersRef = useRef({});
+  // Evita solicitudes duplicadas durante el intervalo entre el clic y la
+  // respuesta del backend (cuando todavía no existe un banner en `banners`).
+  const triggeringKeysRef = useRef(new Set());
 
   const refreshUserData = async (userId = selectedUserId) => {
     try {
@@ -211,6 +214,9 @@ export default function App() {
   const fireDemoTrigger = async (key) => {
     const def = DEMO_TRIGGERS[key];
     if (!def || !selectedUserId) return;
+    const alreadyActive = banners.some((banner) => banner.triggerKey === key);
+    if (alreadyActive || triggeringKeysRef.current.has(key)) return;
+    triggeringKeysRef.current.add(key);
     try {
       const { sessionId } = await triggerImpact({
         userId: selectedUserId,
@@ -220,6 +226,7 @@ export default function App() {
         ...prev,
         {
           id: sessionId,
+          triggerKey: key,
           userId: selectedUserId,
           title: def.bannerTitle,
           subtitle: def.bannerSubtitle,
@@ -233,6 +240,8 @@ export default function App() {
       subscribe(sessionId);
     } catch (err) {
       setConnectionError(err.message);
+    } finally {
+      triggeringKeysRef.current.delete(key);
     }
   };
 
@@ -261,7 +270,12 @@ export default function App() {
     }
     patchBanner(banner.id, { status: "thinking" });
     const codeSuffix = payload?.code ? ` Código de autorización: ${payload.code}.` : "";
-    const text = (payload?.actionSummary || "Confirmo, procede con la acción sugerida.") + codeSuffix;
+    const actionSuffix = payload?.action ? ` Acción solicitada: ${payload.action}.` : "";
+    const valuesSuffix = payload?.values && Object.keys(payload.values).length > 0
+      ? ` Valores: ${JSON.stringify(payload.values)}.`
+      : "";
+    const text = (payload?.actionSummary || "Confirmo, procede con la acción sugerida.")
+      + actionSuffix + valuesSuffix + codeSuffix;
     sendMessage(banner.id, text).catch((err) =>
       patchBanner(banner.id, { status: "error", errorMessage: err.message }),
     );
@@ -304,8 +318,12 @@ export default function App() {
             <button
               key={key}
               onClick={() => fireDemoTrigger(key)}
-              disabled={!selectedUserId}
-              className="text-left text-xs font-semibold bg-gray-900 disabled:bg-gray-300 text-white px-3 py-2 rounded-xl"
+              disabled={
+                !selectedUserId ||
+                triggeringKeysRef.current.has(key) ||
+                banners.some((banner) => banner.triggerKey === key)
+              }
+              className="text-left text-xs font-semibold bg-gray-900 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2 rounded-xl"
             >
               {def.label}
             </button>

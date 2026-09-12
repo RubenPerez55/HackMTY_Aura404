@@ -11,6 +11,37 @@ El código vivo de estos componentes está en `frontend/src/components/`.
 Este documento es el **contrato**: qué hace cada componente, cuándo lo
 elige el agente, y qué props/datos espera.
 
+## Catálogo ampliado
+
+Además de los componentes originales de impacto financiero, el agente puede
+componer pantallas con las siguientes piezas reutilizables:
+
+| Componente | `uiHint` | Uso principal |
+|---|---|---|
+| `BalanceCard` | `balance_card` | Saldo, límite y deuda de una cuenta o tarjeta. |
+| `TransactionList` | `transaction_list` | Movimientos con filtro local por categoría. |
+| `TransactionDetail` | `transaction_detail` | Detalle de un movimiento específico. |
+| `SpendingChart` | `spending_chart` | Distribución del gasto por categoría. |
+| `ProgressBar` | `progress_bar` | Avance de una meta, pago o presupuesto. |
+| `RecommendationCard` | `recommendation_card` | Recomendación explicada y accionable. |
+| `ActionButtonGroup` | `action_button_group` | Decisiones que continúan la conversación. |
+| `FormField` | `form_field` | Captura local de texto, número o selección. |
+| `DateRangePicker` | `date_range_picker` | Captura local de un periodo. |
+| `DataTable` | `data_table` | Tabla ordenable y paginada. |
+| `StatusBadge` | `status_badge` | Estado de una solicitud u operación. |
+| `Timeline` | `timeline` | Secuencia de eventos y seguimiento. |
+| `ComparisonCard` | `comparison_card` | Comparación y selección entre productos. |
+| `DocumentPreview` | `document_preview` | Resumen y acceso a un documento real. |
+| `EmptyState` | `empty_state` | Resultado vacío con acción opcional. |
+| `LoadingState` | `loading_state` | Proceso asíncrono en curso. |
+| `ErrorState` | `error_state` | Error recuperable y reintento opcional. |
+| `ApprovalFlow` | `approval_flow` | Progreso de una autorización por etapas. |
+
+Los controles de captura conservan su estado en `ComposedScreen`. Cuando el
+usuario pulsa una acción, el frontend reúne esos valores y los manda al
+siguiente turno del agente. Las interacciones visuales como filtros,
+ordenamiento y paginación no llaman al backend.
+
 ## Regla de oro (recordatorio de `01-agentic-ui-frontend/04-correcciones-y-notas.md`)
 
 El **banner del dashboard NO es un componente A2UI** — es UI base de la

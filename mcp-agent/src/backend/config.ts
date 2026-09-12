@@ -52,7 +52,7 @@ export function resolveLlm(env: NodeJS.ProcessEnv): { llm: LlmProvider; config: 
     );
   }
 
-  const maxTokens = Number(env.AGENT_MAX_TOKENS ?? 2048);
+  const maxTokens = Number(env.AGENT_MAX_TOKENS ?? 8192);
   const provider = (env.LLM_PROVIDER ?? "openai-compatible") as "anthropic" | "openai-compatible";
 
   const config: LlmProviderConfig =
@@ -68,7 +68,7 @@ export function resolveLlm(env: NodeJS.ProcessEnv): { llm: LlmProvider; config: 
           kind: "openai-compatible",
           baseURL: (env.LLM_BASE_URL ?? "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/$/, ""),
           apiKey,
-          model: env.LLM_MODEL ?? "gemini-3.5-flash-lite",
+          model: env.LLM_MODEL ?? "gemini-2.5-flash",
           maxTokens,
         };
 

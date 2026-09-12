@@ -117,6 +117,106 @@ export const ComponentDataSchemas = {
     actionLabel: z.string(),
     summaryBadge: z.string().optional().default(""),
   }),
+  balance_card: z.object({
+    title: z.string(),
+    availableBalance: z.number(),
+    currency: z.string().optional().default("MXN"),
+    creditLimit: z.number().optional(),
+    currentDebt: z.number().optional(),
+  }),
+  transaction_list: z.object({
+    title: z.string(),
+    currency: z.string().optional().default("MXN"),
+    transactions: z.array(z.object({
+      id: z.string(), description: z.string(), amount: z.number(), date: z.string(),
+      category: z.string().optional(),
+    })),
+  }),
+  transaction_detail: z.object({
+    merchant: z.string(), amount: z.number(), currency: z.string().optional().default("MXN"),
+    date: z.string(), category: z.string().optional(), reference: z.string().optional(),
+    paymentMethod: z.string().optional(),
+  }),
+  spending_chart: z.object({
+    title: z.string(), currency: z.string().optional().default("MXN"),
+    categories: z.array(z.object({ label: z.string(), amount: z.number().nonnegative() })).min(1),
+  }),
+  progress_bar: z.object({
+    title: z.string(), subtitle: z.string().optional(), current: z.number().optional(),
+    target: z.number().positive().optional(), percentage: z.number().min(0).max(100).optional(),
+  }).refine((value) => value.percentage != null || (value.current != null && value.target != null), {
+    message: "Incluye percentage o el par current/target.",
+  }),
+  recommendation_card: z.object({
+    title: z.string(), description: z.string(), badge: z.string().optional(),
+    benefit: z.string().optional(), actionLabel: z.string().optional(),
+    actionId: z.string().optional(), actionSummary: z.string().optional(),
+  }),
+  action_button_group: z.object({
+    title: z.string(),
+    actions: z.array(z.object({
+      id: z.string(), label: z.string(), summary: z.string().optional(),
+      iconName: z.string().optional(), variant: z.enum(["primary", "secondary"]).optional(),
+    })).min(1),
+  }),
+  form_field: z.object({
+    name: z.string(), label: z.string(),
+    type: z.enum(["text", "number", "currency", "email", "tel", "select"]),
+    value: z.union([z.string(), z.number()]).optional(), placeholder: z.string().optional(),
+    helperText: z.string().optional(), required: z.boolean().optional(),
+    min: z.number().optional(), max: z.number().optional(),
+    options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+  }),
+  date_range_picker: z.object({
+    name: z.string().optional(), label: z.string(), startDate: z.string().optional(),
+    endDate: z.string().optional(), minDate: z.string().optional(), maxDate: z.string().optional(),
+  }),
+  data_table: z.object({
+    title: z.string(), pageSize: z.number().int().positive().max(50).optional(),
+    columns: z.array(z.object({
+      key: z.string(), label: z.string(), sortable: z.boolean().optional(),
+      align: z.enum(["left", "right"]).optional(),
+    })).min(1),
+    rows: z.array(z.record(z.unknown())),
+  }),
+  status_badge: z.object({
+    label: z.string(), description: z.string().optional(), text: z.string().optional(),
+    status: z.enum(["approved", "pending", "rejected", "processing", "neutral"]),
+  }),
+  timeline: z.object({
+    title: z.string(),
+    events: z.array(z.object({
+      id: z.string(), title: z.string(), description: z.string().optional(), date: z.string().optional(),
+      status: z.enum(["complete", "current", "pending", "error"]),
+    })).min(1),
+  }),
+  comparison_card: z.object({
+    name: z.string().optional(), title: z.string(), selectedId: z.string().optional(),
+    options: z.array(z.object({
+      id: z.string(), title: z.string(), subtitle: z.string().optional(), recommended: z.boolean().optional(),
+      metrics: z.array(z.object({ label: z.string(), value: z.string() })).min(1),
+    })).min(2),
+  }),
+  document_preview: z.object({
+    title: z.string(), documentType: z.string().optional(), date: z.string().optional(),
+    size: z.string().optional(), description: z.string().optional(), url: z.string().optional(),
+  }),
+  empty_state: z.object({
+    title: z.string(), description: z.string(), iconName: z.string().optional(),
+    actionLabel: z.string().optional(), actionId: z.string().optional(),
+  }),
+  loading_state: z.object({ title: z.string(), description: z.string().optional() }),
+  error_state: z.object({
+    title: z.string(), description: z.string(), code: z.string().optional(),
+    retryLabel: z.string().optional(), actionId: z.string().optional(),
+  }),
+  approval_flow: z.object({
+    title: z.string(),
+    steps: z.array(z.object({
+      id: z.string(), label: z.string(), status: z.enum(["complete", "current", "pending"]),
+    })).min(1),
+    actionLabel: z.string().optional(), actionId: z.string().optional(), actionSummary: z.string().optional(),
+  }),
 
   // --- catálogo "monolítico" original (legacy) ---
   // Todavía válido para escenarios no rediseñados (anualidad/liquidez,
@@ -234,7 +334,14 @@ export function parseA2uiAnswer(text: string | null): ParsedA2uiAnswer {
   const trimmed = text.trim();
   // El LLM a veces envuelve el JSON en ```json ... ``` pese a instrucciones;
   // lo toleramos para no ser frágiles innecesariamente.
-  const unfenced = trimmed.replace(/^```(?:json)?\s*/i, "").replace(/```$/, "").trim();
+  const unfenced = trimmed
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/```$/, "")
+    .trim()
+    // Algunos modelos escapan `_` como Markdown (`surface\_root`).
+    // En JSON ese escape no es válido y además cambia el nombre del nodo;
+    // normalizamos únicamente este caso antes de parsear.
+    .replace(/\\+_/g, "_");
 
   let raw: unknown;
   try {

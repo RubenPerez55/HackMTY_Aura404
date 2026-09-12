@@ -1,0 +1,3 @@
+export default function ActionButtonGroup({ data, onAction }) {
+  return <section><p className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">{data.title}</p><div className="grid gap-2">{data.actions.map((action, index) => <button key={action.id} onClick={() => onAction?.({ action: action.id, actionSummary: action.summary ?? action.label })} className={`rounded-2xl px-4 py-3 text-sm font-semibold transition active:scale-[0.99] ${action.variant === "primary" || (!action.variant && index === 0) ? "bg-[#EB0029] text-white" : "border border-gray-200 bg-white text-gray-700"}`}><i className={`fa-solid ${action.iconName ?? "fa-arrow-right"} mr-2`} />{action.label}</button>)}</div></section>;
+}

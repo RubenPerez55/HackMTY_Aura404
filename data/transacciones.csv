@@ -244,3 +244,4 @@ id_transaccion,usuario,fecha,categoria,monto,descripcion
 243,Hector Castro,2026-09-12 01:10:06,Salud,5200.0,Laboratorios y estudios clínicos
 244,Javier Ortiz,2026-09-12 01:10:07,Comida,3100.0,Cena ejecutiva en restaurante premium
 245,Hector Barrera,2026-09-12 14:50:21,Abono Liquidez,1200.00,Reintegro por diferimiento a 3 MSI (Tx #101)
+246,Hector Barrera,2026-09-12 19:17:42,Adelanto Nomina,1500.00,Depósito inmediato Adelanto de Nómina Banorte - Folio FOL-NOM-679680

@@ -31,7 +31,7 @@ cuando aplica, es el arreglo JSON de A2UI en sí.
 
 **El "contrato" que se mencionó en la plática con el equipo** ya está
 implementado: `mcp-agent/src/agent/a2ui-contract.ts`. Es el catálogo de
-los 5 componentes (mismo catálogo que ya existía en
+los componentes disponibles (el catálogo se mantiene sincronizado con
 `02-catalogo-componentes.md` y en `frontend/src/components/
 componentRegistry.js`) más un validador con `zod`
 (`parseA2uiAnswer(text)`) que:
@@ -67,7 +67,7 @@ generó). Si `event.ui` es `null`, es una respuesta conversacional normal.
 `mcp-agent/task.md` ahora incluye, en la sección "Generación de
 interfaz (A2UI)", el catálogo completo y la forma exacta del JSON que
 debe producir, con la regla explícita de responder en texto normal
-cuando el estímulo no corresponde a ninguno de los 5 componentes. Es un
+cuando el estímulo no corresponde a ningún componente del catálogo. Es un
 primer borrador de prompt — como todo prompt, seguramente necesite
 ajustes una vez que se pruebe con el LLM real; vale la pena revisarlo en
 equipo.

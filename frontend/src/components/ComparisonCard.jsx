@@ -1,0 +1,6 @@
+import { useState } from "react";
+export default function ComparisonCard({ data, onValueChange }) {
+  const [selected, setSelected] = useState(data.selectedId);
+  const choose = (id) => { setSelected(id); onValueChange?.(data.name ?? "comparison", id); };
+  return <section><h3 className="mb-2 text-sm font-bold text-gray-900">{data.title}</h3><div className="grid gap-2">{data.options.map((option) => <button key={option.id} onClick={() => choose(option.id)} className={`rounded-2xl border p-3 text-left ${selected === option.id ? "border-[#EB0029] bg-red-50" : "border-gray-200 bg-white"}`}><div className="flex justify-between"><div><p className="text-sm font-bold text-gray-800">{option.title}</p>{option.subtitle && <p className="text-[10px] text-gray-500">{option.subtitle}</p>}</div>{option.recommended && <span className="h-fit rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-bold text-green-700">MEJOR OPCIÓN</span>}</div><dl className="mt-3 grid grid-cols-2 gap-2">{option.metrics.map((m) => <div key={m.label} className="rounded-xl bg-white/70 p-2"><dt className="text-[9px] text-gray-400">{m.label}</dt><dd className="text-xs font-bold text-gray-800">{m.value}</dd></div>)}</dl></button>)}</div></section>;
+}
