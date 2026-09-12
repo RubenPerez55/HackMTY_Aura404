@@ -49,6 +49,8 @@ async function runBankingSmoke(): Promise<void> {
     "simulate_installments",
     "apply_installments",
     "get_payroll_calendar",
+    "simulate_payroll_advance",
+    "apply_payroll_advance",
   ];
 
   for (const req of requiredTools) {
@@ -189,6 +191,29 @@ async function runBankingSmoke(): Promise<void> {
   assert.ok(typeof payroll.presupuesto_diario_restante === "number");
   assert.ok(payroll.diagnostico.includes("Faltan 3 días"));
   console.log(`✔ Calendario de nómina verificado: Faltan ${payroll.daysUntilPayroll} días para dispersión ($${payroll.monto_estimado_quincena} MXN el ${payroll.proxima_fecha_dispersion}).`);
+
+  // 10. Probar simulación de adelanto de nómina
+  console.log("\n--- TEST 11: Simulación de adelanto de nómina preaprobado ---");
+  const simAdvance = await call("simulate_payroll_advance", {
+    usuario: "Hector Barrera",
+  });
+  assert.equal(simAdvance.eligible, true);
+  assert.equal(simAdvance.monto_maximo_disponible, 4900); // 35% de $14,000
+  assert.ok(simAdvance.comision_apertura_fija >= 147);
+  console.log(`✔ Adelanto de nómina simulado: Límite preaprobado $${simAdvance.monto_maximo_disponible} MXN, Comisión: $${simAdvance.comision_apertura_fija} MXN.`);
+
+  // 11. Probar aplicación autorizada de adelanto de nómina con SoftToken
+  console.log("\n--- TEST 12: Dispersión autorizada de adelanto de nómina con SoftToken ---");
+  const execAdvance = await call("apply_payroll_advance", {
+    usuario: "Hector Barrera",
+    monto: 3000,
+    token_2fa: "123456",
+  });
+  assert.equal(execAdvance.success, true);
+  assert.ok(execAdvance.folio_bancario.startsWith("FOL-NOM-"));
+  assert.equal(execAdvance.monto_depositado, 3000);
+  assert.ok(execAdvance.nuevo_saldo_disponible > execAdvance.saldo_anterior_debito);
+  console.log(`✔ Adelanto autorizado y depositado: Folio ${execAdvance.folio_bancario}, Nuevo saldo: $${execAdvance.nuevo_saldo_disponible} MXN.`);
 
   await client.close();
   console.log("\n==================================================================");

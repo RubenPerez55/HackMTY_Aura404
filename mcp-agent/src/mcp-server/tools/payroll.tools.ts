@@ -148,4 +148,249 @@ export function registerPayrollTools(server: McpServer, data: BankDataSource): v
       };
     },
   );
+
+  server.registerTool(
+    "simulate_payroll_advance",
+    {
+      description:
+        "Simula un adelanto de nómina preaprobado (hasta el 35% de la quincena estimada) con depósito inmediato a la cuenta de débito para solucionar falta de liquidez cuando el usuario no tiene compras que diferir.",
+      inputSchema: {
+        usuario: z.string().describe("Nombre del usuario bancario (ej. 'Hector Barrera', 'Ruben Perez')"),
+        monto_solicitado: z
+          .number()
+          .positive()
+          .optional()
+          .describe("Monto opcional solicitado en MXN. Si no se especifica, se calcula el monto máximo preaprobado."),
+      },
+    },
+    async ({ usuario, monto_solicitado }) => {
+      const context = data.getUserContext(usuario);
+      if (!context) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                error: `Usuario "${usuario}" no encontrado en la base de datos bancaria.`,
+                availableUsers: data.listNames(),
+              }),
+            },
+          ],
+        };
+      }
+
+      // 1. Evaluación de riesgo crediticio
+      const score = context.score_crediticio ?? 0;
+      const historial = context.historial_crediticio ?? "";
+      if (score < 550 || historial === "Malo") {
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                eligible: false,
+                usuario: context.usuario,
+                score_crediticio: score,
+                reason:
+                  "El cliente no califica para adelanto de nómina debido a su perfil crediticio actual (se requiere score mínimo de 550 puntos).",
+              }),
+            },
+          ],
+        };
+      }
+
+      // 2. Cálculo de capacidad y límite preaprobado (35% de la quincena)
+      const ingresoMensual = context.ingreso_mensual ?? 0;
+      const montoQuincena = Math.round((ingresoMensual / 2) * 100) / 100;
+      const maxAdelanto = Math.round(montoQuincena * 0.35 * 100) / 100;
+      const montoMinimo = 500;
+
+      if (maxAdelanto < montoMinimo) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                eligible: false,
+                usuario: context.usuario,
+                reason: `El límite disponible calculado ($${maxAdelanto.toFixed(2)} MXN) no alcanza el monto mínimo bancario para adelanto ($${montoMinimo.toFixed(2)} MXN).`,
+              }),
+            },
+          ],
+        };
+      }
+
+      if (monto_solicitado !== undefined) {
+        if (monto_solicitado < montoMinimo) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify({
+                  eligible: false,
+                  usuario: context.usuario,
+                  reason: `El monto solicitado ($${monto_solicitado.toFixed(2)} MXN) es menor al monto mínimo permitido ($${montoMinimo.toFixed(2)} MXN).`,
+                }),
+              },
+            ],
+          };
+        }
+        if (monto_solicitado > maxAdelanto) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify({
+                  eligible: false,
+                  usuario: context.usuario,
+                  max_disponible: maxAdelanto,
+                  reason: `El monto solicitado ($${monto_solicitado.toFixed(2)} MXN) excede el límite máximo preaprobado para tu quincena ($${maxAdelanto.toFixed(2)} MXN).`,
+                }),
+              },
+            ],
+          };
+        }
+      }
+
+      const montoAprobado = monto_solicitado ? Math.round(monto_solicitado * 100) / 100 : maxAdelanto;
+      const comisionApertura = Math.max(150, Math.round(montoAprobado * 0.03 * 100) / 100);
+      const totalLiquidar = Math.round((montoAprobado + comisionApertura) * 100) / 100;
+
+      const { daysUntilPayroll, proximaFechaPago } = calculatePayrollCalendar();
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              eligible: true,
+              usuario: context.usuario,
+              monto_adelanto_aprobado: montoAprobado,
+              monto_maximo_disponible: maxAdelanto,
+              comision_apertura_fija: comisionApertura,
+              total_a_liquidar_en_quincena: totalLiquidar,
+              fecha_cobro_programado: proximaFechaPago,
+              dias_para_cobro: daysUntilPayroll,
+              saldo_actual_debito: context.saldo_ahorro ?? 0,
+              saldo_proyectado_inmediato: Math.round(((context.saldo_ahorro ?? 0) + montoAprobado) * 100) / 100,
+              resumen: `Adelanto de nómina preaprobado por $${montoAprobado.toFixed(2)} MXN. Se deposita de inmediato a tu débito. Comisión única de apertura: $${comisionApertura.toFixed(2)} MXN. Se liquida automáticamente el ${proximaFechaPago}.`,
+            }),
+          },
+        ],
+      };
+    },
+  );
+
+  server.registerTool(
+    "apply_payroll_advance",
+    {
+      description:
+        "Formaliza y deposita inmediatamente un adelanto de nómina en la cuenta de débito del cliente tras validar su SoftToken 2FA (Human-in-the-Loop).",
+      inputSchema: {
+        usuario: z.string().describe("Nombre del usuario bancario"),
+        monto: z.number().positive().describe("Monto en MXN a depositar de inmediato"),
+        token_2fa: z.string().describe("Código SoftToken de 6 dígitos para autorizar el depósito inmediato"),
+      },
+    },
+    async ({ usuario, monto, token_2fa }) => {
+      // 1. Validación de segundo factor de autenticación (RF-04.1, E-02)
+      if (!/^\d{6}$/.test(token_2fa.trim())) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: false,
+                error: "Código SoftToken inválido o expirado. Debe contener exactamente 6 dígitos numéricos.",
+                codigo_error: "AUTH_2FA_INVALID",
+              }),
+            },
+          ],
+        };
+      }
+
+      const context = data.getUserContext(usuario);
+      if (!context) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: false,
+                error: `Usuario "${usuario}" no encontrado en la base de datos bancaria.`,
+              }),
+            },
+          ],
+        };
+      }
+
+      const ingresoMensual = context.ingreso_mensual ?? 0;
+      const montoQuincena = Math.round((ingresoMensual / 2) * 100) / 100;
+      const maxAdelanto = Math.round(montoQuincena * 0.35 * 100) / 100;
+
+      if (monto > maxAdelanto || monto < 500) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                success: false,
+                error: `El monto de $${monto.toFixed(2)} MXN no cumple los límites bancarios (mínimo $500.00 MXN, máximo $${maxAdelanto.toFixed(2)} MXN).`,
+              }),
+            },
+          ],
+        };
+      }
+
+      const comisionApertura = Math.max(150, Math.round(monto * 0.03 * 100) / 100);
+      const totalLiquidar = Math.round((monto + comisionApertura) * 100) / 100;
+      const { proximaFechaPago } = calculatePayrollCalendar();
+
+      // 2. Mutación real de saldos
+      const saldoAnterior = context.saldo_ahorro ?? 0;
+      const nuevoSaldo = Math.round((saldoAnterior + monto) * 100) / 100;
+      const nuevaDeuda = Math.round(((context.deuda_total ?? 0) + totalLiquidar) * 100) / 100;
+
+      data.updateUser(usuario, {
+        saldo_ahorro: nuevoSaldo,
+        deuda_total: nuevaDeuda,
+      });
+
+      const folio = `FOL-NOM-${Math.floor(100000 + Math.random() * 900000)}`;
+      const nowIso = new Date().toISOString().replace("T", " ").substring(0, 19);
+
+      data.appendTransaction({
+        usuario: context.usuario,
+        fecha: nowIso,
+        categoria: "Adelanto Nomina",
+        monto: monto,
+        descripcion: `Depósito inmediato Adelanto de Nómina Banorte - Folio ${folio}`,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              success: true,
+              folio_bancario: folio,
+              usuario: context.usuario,
+              monto_depositado: monto,
+              comision_apertura: comisionApertura,
+              total_programado_debito: totalLiquidar,
+              fecha_cobro_quincena: proximaFechaPago,
+              saldo_anterior_debito: saldoAnterior,
+              nuevo_saldo_disponible: nuevoSaldo,
+              fecha_autorizacion: new Date().toISOString(),
+              comprobante: `Adelanto de nómina autorizado con SoftToken. Se depositaron $${monto.toFixed(2)} MXN de inmediato a tu débito (nuevo disponible: $${nuevoSaldo.toFixed(2)} MXN). Se liquidará automáticamente el ${proximaFechaPago}. Folio: ${folio}.`,
+            }),
+          },
+        ],
+      };
+    },
+  );
 }

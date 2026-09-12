@@ -81,6 +81,10 @@ async function runClientFlow(): Promise<void> {
     // Escenario 1: Pico de servicio (tiene 4,350 puntos Oro)
     stimulus =
       "Hola, soy Ruben Perez. Llegó mi recibo de CFE por $1,700 MXN cuando habitualmente pago $1,000 MXN. Este sobrecosto de $700 me desbalancea el presupuesto del mes. ¿Puedo usar mis puntos de fidelidad Banorte para neutralizar el excedente?";
+  } else if (clientName === "Hector Castro") {
+    // Escenario 4: Adelanto de nómina ante falta de liquidez
+    stimulus =
+      "Hola, soy Hector Castro. Me quedé sin efectivo para cubrir los gastos esenciales de la semana antes de la quincena. ¿Tengo preaprobado algún adelanto de nómina con Banorte?";
   } else {
     stimulus = `Hola, soy ${clientName}. ¿Cuál es mi situación financiera actual y qué me recomiendas para optimizar mis gastos?`;
   }
@@ -103,6 +107,8 @@ async function runClientFlow(): Promise<void> {
     authorizationMsg = "Sí, autorizo diferir la compra a 6 meses. Mi SoftToken es 123456.";
   } else if (clientName === "Ruben Perez") {
     authorizationMsg = "Sí, autorizo aplicar mis puntos al cargo. Mi SoftToken es 654321.";
+  } else if (clientName === "Hector Castro") {
+    authorizationMsg = "Sí, autorizo solicitar el adelanto de nómina por $2,500 MXN. Mi SoftToken es 123456.";
   } else {
     authorizationMsg = "Entendido, gracias.";
   }
