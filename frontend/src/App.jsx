@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Modal from "./components/Modal.jsx";
 import AlertBanner from "./components/AlertBanner.jsx";
+import FormattedChatMessage from "./components/FormattedChatMessage.jsx";
 import A2uiSurfaceView from "./a2ui/A2uiSurfaceView.jsx";
 import { createInitialState, applyA2uiMessages, listSurfaces } from "./a2ui/reducer.js";
 import {
@@ -648,7 +649,7 @@ export default function App() {
                   {openBanner.chatLog.length > 0 && (
                     <div className="max-h-32 overflow-y-auto space-y-2 mb-2">
                       {openBanner.chatLog.map((entry, i) => (
-                        <p
+                        <div
                           key={i}
                           className={`text-xs rounded-xl px-3 py-2 max-w-[85%] ${
                             entry.role === "user"
@@ -656,8 +657,8 @@ export default function App() {
                               : "bg-gray-100 text-gray-700"
                           }`}
                         >
-                          {entry.text}
-                        </p>
+                          <FormattedChatMessage text={entry.text} isUser={entry.role === "user"} />
+                        </div>
                       ))}
                     </div>
                   )}
