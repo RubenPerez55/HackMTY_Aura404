@@ -51,7 +51,7 @@ async function resolveSystemPrompt(): Promise<string> {
 }
 
 function loadConfig(argv: string[], systemPrompt: string): AppConfig {
-  const maxTokens = Number(process.env.AGENT_MAX_TOKENS ?? 2048);
+  const maxTokens = Number(process.env.AGENT_MAX_TOKENS ?? 8192);
   const maxIterations = Number(process.env.AGENT_MAX_ITERATIONS ?? 10);
 
   const llmProvider = (process.env.LLM_PROVIDER ?? "openai-compatible") as

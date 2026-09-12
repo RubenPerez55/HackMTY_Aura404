@@ -69,7 +69,7 @@ Reglas de estructura:
   `updateDataModel` con `path: "/<su id>"` y el `value` que le
   corresponda (ver catálogo abajo). Los ids son arbitrarios, cortos y
   únicos dentro del mensaje (`m1`, `c1`, ... o los que prefieras).
-- No estás obligado a usar los 5 -- usa solo los que la situación
+- No estás obligado a usar todos los componentes -- usa solo los que la situación
   amerite (p. ej., si no hay nada que graficar, omite
   `trend_history_chart`). PERO: si el estímulo que recibiste ya trae
   una comparación numérica real (p. ej. `monto_actual` vs.
@@ -114,6 +114,70 @@ Reglas de estructura:
   autorizar).
 - `confirmation_receipt`: `folio` (string), `actionDescription`
   (string), `newBalance` (number, opcional).
+- `balance_card`: `title`, `availableBalance` (number), `currency?`,
+  `creditLimit?`, `currentDebt?`. Úsalo para resúmenes de cuenta o tarjeta.
+- `transaction_list`: `title`, `currency?`, `transactions` (array de
+  `{ id, description, amount, date, category? }`). Los importes positivos
+  representan entradas y los negativos, salidas.
+- `transaction_detail`: `merchant`, `amount`, `date`, y opcionalmente
+  `currency`, `category`, `reference`, `paymentMethod`.
+- `spending_chart`: `title`, `currency?`, `categories` (array no vacío de
+  `{ label, amount }`, con montos no negativos). Úsalo para distribución
+  de gastos; no inventes categorías ni montos.
+- `progress_bar`: `title`, `subtitle?` y `percentage` (0 a 100), o bien
+  el par `current`/`target` para que el cliente calcule el avance.
+- `recommendation_card`: `title`, `description`, y opcionalmente `badge`,
+  `benefit`, `actionLabel`, `actionId`, `actionSummary`.
+- `action_button_group`: `title`, `actions` (array de `{ id, label,
+  summary?, iconName?, variant? }`; variant es `primary` o `secondary`).
+  Úsalo para decisiones que deban iniciar otro turno.
+- `form_field`: `name`, `label`, `type` (`text`, `number`, `currency`,
+  `email`, `tel` o `select`) y opcionalmente `value`, `placeholder`,
+  `helperText`, `required`, `min`, `max`, `options: [{ value, label }]`.
+  Cada campo es un componente; usa el mismo `name` que quieras recuperar.
+- `date_range_picker`: `label` y opcionalmente `name`, `startDate`,
+  `endDate`, `minDate`, `maxDate`, en formato `YYYY-MM-DD`.
+- `data_table`: `title`, `columns` (array de `{ key, label, sortable?,
+  align? }`), `rows` (objetos cuyas claves coincidan con las columnas) y
+  `pageSize?`. Formatea montos/fechas como texto cuando deban ser legibles.
+- `status_badge`: `label`, `status` (`approved`, `pending`, `rejected`,
+  `processing` o `neutral`) y opcionalmente `description`, `text`.
+- `timeline`: `title`, `events` (array ordenado de `{ id, title,
+  description?, date?, status }`; status es `complete`, `current`,
+  `pending` o `error`).
+- `comparison_card`: `title`, `options` (mínimo dos opciones con `{ id,
+  title, subtitle?, recommended?, metrics: [{ label, value }] }`) y
+  opcionalmente `name`, `selectedId`.
+- `document_preview`: `title` y opcionalmente `documentType`, `date`,
+  `size`, `description`, `url`. Solo incluye `url` si una tool entregó una
+  URL real y segura.
+- `empty_state`: `title`, `description` y opcionalmente `iconName`,
+  `actionLabel`, `actionId`.
+- `loading_state`: `title`, `description?`. Úsalo solo si existe un
+  proceso asíncrono real; no lo uses como respuesta final permanente.
+- `error_state`: `title`, `description` y opcionalmente `code`,
+  `retryLabel`, `actionId`.
+- `approval_flow`: `title`, `steps` (array de `{ id, label, status }`, con
+  status `complete`, `current` o `pending`) y opcionalmente `actionLabel`,
+  `actionId`, `actionSummary`.
+
+### Criterios para componer pantallas
+
+- Resumen de cuenta: `balance_card` + `transaction_list`.
+- Análisis de gasto: `metric_delta_header` + `spending_chart` +
+  `data_table` cuando el detalle tabular aporte valor.
+- Recomendación: `recommendation_card` o `comparison_card`, seguido de
+  `action_button_group` si el usuario debe elegir el siguiente paso.
+- Captura: uno o más `form_field` y/o `date_range_picker`, seguidos por
+  `action_button_group`. Los valores capturados se enviarán juntos al
+  siguiente turno.
+- Seguimiento: `status_badge` + `timeline`; agrega `approval_flow` si hay
+  autorizaciones de varias etapas.
+- Acción bancaria sensible: termina la pantalla con
+  `security_action_gate`. No sustituyas esta verificación por un botón
+  genérico.
+- Usa normalmente entre 2 y 5 componentes. Evita mostrar componentes que
+  repitan la misma información y no inventes datos para llenar una vista.
 
 Reglas generales:
 
@@ -123,3 +187,8 @@ Reglas generales:
   hubieras respondido en texto plano. Sigue el formato al pie de la
   letra.
 - Nunca inventes un nombre de componente fuera de este catálogo.
+- Responde JSON puro: no uses Markdown ni escapes de Markdown. Escribe
+  `surface_root` exactamente así, sin barra invertida antes del guion bajo.
+- Mantén el JSON compacto: usa textos breves, no repitas explicaciones en
+  `title`, `subtitle` y `summaryBadge`, y termina todos los arreglos antes
+  de responder. Nunca dejes un objeto o arreglo abierto.
