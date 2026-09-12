@@ -7,9 +7,13 @@ import type { McpServerConnection } from "./registry.js";
  * del registro como una sola superficie al agent loop (interfaz
  * `AgentMcpClient`).
  *
- * - Los tools se cualifican como `<serverId>.<toolName>` para evitar
- *   colisiones (p. ej. `banking.consulta_saldo`, `impact.analizar`).
- * - `callTool` des-enruta por el prefijo `<serverId>.` hacia el server
+ * - Los tools se cualifican como `<serverId>__<toolName>` para evitar
+ *   colisiones (p. ej. `banking__consulta_saldo`, `impact__analizar`).
+ *   OJO: el separador es doble guion bajo, NO un punto -- las APIs
+ *   OpenAI-compatibles (OpenRouter incluido) validan el nombre de la
+ *   tool contra `^[a-zA-Z0-9_-]+$` y rechazan el request completo
+ *   (400 "does not match pattern") si lleva un punto.
+ * - `callTool` des-enruta por el prefijo `<serverId>__` hacia el server
  *   correcto.
  */
 export class CompositeMcpClient implements AgentMcpClient {

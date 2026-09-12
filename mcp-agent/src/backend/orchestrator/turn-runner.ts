@@ -78,6 +78,15 @@ export class TurnRunner {
       // contrato antes de mandarla al frontend; si no es A2UI válido,
       // `ui` queda en null y el frontend lo trata como texto normal.
       const parsedUi = parseA2uiAnswer(result.finalAnswer);
+      if (!parsedUi.ok) {
+        // Visibilidad para depurar: si el LLM iba a mandar A2UI y el
+        // contrato lo rechazó (campo faltante, componente inventado,
+        // etc.), esto se veía en el frontend como "el agente sigue
+        // contestando en texto plano" sin ninguna pista del porqué.
+        console.warn(
+          `[a2ui] turno ${sessionId}#${turnNumber}: respuesta tratada como texto plano -- ${parsedUi.reason}`,
+        );
+      }
 
       bus.emit({
         type: "turn.end",
