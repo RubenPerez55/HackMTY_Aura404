@@ -10,6 +10,24 @@ import DynamicValueSlider from "./DynamicValueSlider.jsx";
 import InteractiveToggleList from "./InteractiveToggleList.jsx";
 import SecurityActionGate from "./SecurityActionGate.jsx";
 import GenericJsonView from "./GenericJsonView.jsx";
+import BalanceCard from "./BalanceCard.jsx";
+import TransactionList from "./TransactionList.jsx";
+import TransactionDetail from "./TransactionDetail.jsx";
+import SpendingChart from "./SpendingChart.jsx";
+import ProgressBar from "./ProgressBar.jsx";
+import RecommendationCard from "./RecommendationCard.jsx";
+import ActionButtonGroup from "./ActionButtonGroup.jsx";
+import FormField from "./FormField.jsx";
+import DateRangePicker from "./DateRangePicker.jsx";
+import DataTable from "./DataTable.jsx";
+import StatusBadge from "./StatusBadge.jsx";
+import Timeline from "./Timeline.jsx";
+import ComparisonCard from "./ComparisonCard.jsx";
+import DocumentPreview from "./DocumentPreview.jsx";
+import EmptyState from "./EmptyState.jsx";
+import LoadingState from "./LoadingState.jsx";
+import ErrorState from "./ErrorState.jsx";
+import ApprovalFlow from "./ApprovalFlow.jsx";
 
 // Component registry: mapa nombre de componente A2UI -> componente
 // React. Ver docs/01-agentic-ui-frontend/03-arquitectura-componentes-
@@ -34,6 +52,24 @@ export const componentRegistry = {
   dynamic_value_slider: DynamicValueSlider,
   interactive_toggle_list: InteractiveToggleList,
   security_action_gate: SecurityActionGate,
+  balance_card: BalanceCard,
+  transaction_list: TransactionList,
+  transaction_detail: TransactionDetail,
+  spending_chart: SpendingChart,
+  progress_bar: ProgressBar,
+  recommendation_card: RecommendationCard,
+  action_button_group: ActionButtonGroup,
+  form_field: FormField,
+  date_range_picker: DateRangePicker,
+  data_table: DataTable,
+  status_badge: StatusBadge,
+  timeline: Timeline,
+  comparison_card: ComparisonCard,
+  document_preview: DocumentPreview,
+  empty_state: EmptyState,
+  loading_state: LoadingState,
+  error_state: ErrorState,
+  approval_flow: ApprovalFlow,
   // pantalla final (siempre de un solo nodo)
   confirmation_receipt: ConfirmationReceipt,
   // legacy

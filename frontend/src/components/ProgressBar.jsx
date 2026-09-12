@@ -1,0 +1,4 @@
+export default function ProgressBar({ data }) {
+  const pct = Math.min(100, Math.max(0, data.percentage ?? (data.current / data.target) * 100));
+  return <section className="rounded-2xl border border-gray-200 bg-white p-4"><div className="flex justify-between"><div><p className="text-sm font-bold text-gray-900">{data.title}</p>{data.subtitle && <p className="text-xs text-gray-400">{data.subtitle}</p>}</div><span className="text-lg font-black text-[#EB0029]">{Math.round(pct)}%</span></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100"><div className="h-full rounded-full bg-[#EB0029] transition-all" style={{ width: `${pct}%` }} /></div>{data.current != null && data.target != null && <p className="mt-2 text-right text-[10px] text-gray-400">{data.current.toLocaleString()} de {data.target.toLocaleString()}</p>}</section>;
+}

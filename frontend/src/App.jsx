@@ -261,7 +261,12 @@ export default function App() {
     }
     patchBanner(banner.id, { status: "thinking" });
     const codeSuffix = payload?.code ? ` Código de autorización: ${payload.code}.` : "";
-    const text = (payload?.actionSummary || "Confirmo, procede con la acción sugerida.") + codeSuffix;
+    const actionSuffix = payload?.action ? ` Acción solicitada: ${payload.action}.` : "";
+    const valuesSuffix = payload?.values && Object.keys(payload.values).length > 0
+      ? ` Valores: ${JSON.stringify(payload.values)}.`
+      : "";
+    const text = (payload?.actionSummary || "Confirmo, procede con la acción sugerida.")
+      + actionSuffix + valuesSuffix + codeSuffix;
     sendMessage(banner.id, text).catch((err) =>
       patchBanner(banner.id, { status: "error", errorMessage: err.message }),
     );

@@ -20,6 +20,21 @@ export default function ComposedScreen({ children, onConfirm }) {
 
   const [selectedId, setSelectedId] = useState(solutionChild?.data?.selectedId);
   const [sliderValue, setSliderValue] = useState(sliderChild?.data?.value);
+  const [inputValues, setInputValues] = useState({});
+
+  const handleValueChange = (name, value) => {
+    setInputValues((previous) => ({ ...previous, [name]: value }));
+  };
+
+  const handleAction = async (payload) => {
+    await onConfirm?.({
+      ...payload,
+      values: inputValues,
+      actionSummary: [payload?.actionSummary, Object.keys(inputValues).length > 0
+        ? `Datos capturados: ${JSON.stringify(inputValues)}.`
+        : ""].filter(Boolean).join(" "),
+    });
+  };
 
   const handleSecurityConfirm = async (token) => {
     const selectedOption = solutionChild?.data?.options?.find((o) => o.id === selectedId);
@@ -30,7 +45,7 @@ export default function ComposedScreen({ children, onConfirm }) {
       parts.push(`${sliderChild.data.unitLabel}: ${sliderValue}.`);
     }
     const actionSummary = parts.join(" ") || "Confirmo la operación sugerida.";
-    await onConfirm?.({ actionSummary, code: token });
+    await onConfirm?.({ actionSummary, code: token, values: inputValues });
   };
 
   return (
@@ -54,6 +69,12 @@ export default function ComposedScreen({ children, onConfirm }) {
         }
         if (child.component === "security_action_gate") {
           return <Component key={child.id} data={child.data} onConfirm={handleSecurityConfirm} />;
+        }
+        if (["form_field", "date_range_picker", "comparison_card"].includes(child.component)) {
+          return <Component key={child.id} data={child.data} onValueChange={handleValueChange} />;
+        }
+        if (["recommendation_card", "action_button_group", "empty_state", "error_state", "approval_flow"].includes(child.component)) {
+          return <Component key={child.id} data={child.data} onAction={handleAction} />;
         }
         return <Component key={child.id} data={child.data} />;
       })}

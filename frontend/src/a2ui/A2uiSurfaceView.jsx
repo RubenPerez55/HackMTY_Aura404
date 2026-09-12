@@ -19,13 +19,14 @@ export default function A2uiSurfaceView({ surface, onConfirm, onCancel }) {
   if (!surface) return null;
 
   if (surface.children) {
-    return <ComposedScreen children={surface.children} onConfirm={onConfirm} />;
+    return <ComposedScreen key={surface.surfaceId} children={surface.children} onConfirm={onConfirm} />;
   }
 
   const Component = resolveComponent(surface.component);
+  const handleAction = (payload) => onConfirm?.(payload);
   return (
     <div>
-      <Component data={surface.data} onConfirm={onConfirm} onCancel={onCancel} />
+      <Component data={surface.data} onConfirm={onConfirm} onAction={handleAction} onCancel={onCancel} />
       <p className="text-center text-[10px] text-gray-300 pt-1">
         Componente generado tras análisis de LLM
       </p>
