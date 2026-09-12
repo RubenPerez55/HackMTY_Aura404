@@ -75,29 +75,45 @@ export function resolveLlm(env: NodeJS.ProcessEnv): { llm: LlmProvider; config: 
 }
 
 /**
- * Registro multi-server MCP desde el entorno.
+ * Registro multi-server MCP desde el entorno. Soporta dos formas de
+ * declarar un server, por `<SERVER_ID>`:
  *
- * Convención: `MCP_<SERVER_ID>_URL`, `MCP_<SERVER_ID>_TOKEN`,
- * `MCP_<SERVER_ID>_TRANSPORT` (auto = `streamable-http`, o `sse`).
- * Ejemplo: `MCP_BANKING_URL=https://.../mcp`, `MCP_IMPACT_URL=https://...`.
+ *  - Remoto HTTP: `MCP_<SERVER_ID>_URL` (+ `_TOKEN`, `_TRANSPORT` opcionales;
+ *    auto = `streamable-http`, o `sse`). Ej.: `MCP_BANKING_URL=https://.../mcp`.
+ *  - Local stdio: `MCP_<SERVER_ID>_COMMAND` (+ `_ARGS` como JSON array).
+ *    Ej.: `MCP_UI_COMMAND=tsx`, `MCP_UI_ARGS=["src/mcp-servers/ui-server.ts"]`.
+ *    Pensado para servers que no necesitan desplegarse aparte (como el
+ *    server `ui`/A2UI: no toca datos externos, solo arma JSON).
+ *
+ * Si un `<SERVER_ID>` define ambas, gana `_URL` (remoto).
  */
 export function resolveMcpServersFromEnv(env: NodeJS.ProcessEnv): McpServerConfig[] {
-  const groups = new Map<string, { url?: string; token?: string; transport?: string }>();
+  type Group = {
+    url?: string;
+    token?: string;
+    transport?: string;
+    command?: string;
+    args?: string;
+  };
+  const groups = new Map<string, Group>();
 
   for (const [key, value] of Object.entries(env)) {
-    const match = /^MCP_([A-Z0-9_]+)_(URL|TOKEN|TRANSPORT)$/.exec(key);
+    const match = /^MCP_([A-Z0-9_]+)_(URL|TOKEN|TRANSPORT|COMMAND|ARGS)$/.exec(key);
     if (!match) continue;
     const id = match[1].toLowerCase().replace(/_/g, "-");
-    const field = match[2].toLowerCase() as "url" | "token" | "transport";
-    const group = groups.get(id) ?? { url: undefined, token: undefined, transport: undefined };
+    const field = match[2].toLowerCase() as "url" | "token" | "transport" | "command" | "args";
+    const group = groups.get(id) ?? {};
     group[field] = value;
     groups.set(id, group);
   }
 
   const servers: McpServerConfig[] = [];
   for (const [id, group] of groups) {
-    if (!group.url) continue;
-    servers.push({ id, transport: httpTransport(group.url, group.transport, group.token) });
+    if (group.url) {
+      servers.push({ id, transport: httpTransport(group.url, group.transport, group.token) });
+    } else if (group.command) {
+      servers.push({ id, transport: stdioTransport(group.command, group.args) });
+    }
   }
   return servers;
 }
@@ -113,6 +129,19 @@ function httpTransport(
       ? "sse"
       : "streamable-http";
   return { kind, url: urlClean, token: token || undefined };
+}
+
+function stdioTransport(command: string, argsRaw?: string): McpTransportConfig {
+  let args: string[] | undefined;
+  if (argsRaw) {
+    try {
+      const parsed = JSON.parse(argsRaw);
+      args = Array.isArray(parsed) ? parsed.map(String) : undefined;
+    } catch {
+      args = argsRaw.split(/\s+/).filter(Boolean);
+    }
+  }
+  return { kind: "stdio", command: command.trim(), args };
 }
 
 export async function loadBackendConfig(
