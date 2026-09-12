@@ -8,6 +8,7 @@ import { registerProfileTools } from "./tools/profile.tools.js";
 import { registerPointsTools } from "./tools/points.tools.js";
 import { registerDomiciliationTools } from "./tools/domiciliation.tools.js";
 import { registerInstallmentsTools } from "./tools/installments.tools.js";
+import { registerPayrollTools } from "./tools/payroll.tools.js";
 import { registerSecurityTools } from "./tools/security.tools.js";
 
 export interface BankingServerInstance {
@@ -31,6 +32,7 @@ export function createBankingMcpServer(dataDir?: string): BankingServerInstance 
   registerPointsTools(server, data);
   registerDomiciliationTools(server, data);
   registerInstallmentsTools(server, data);
+  registerPayrollTools(server, data);
 
   return { server, data };
 }

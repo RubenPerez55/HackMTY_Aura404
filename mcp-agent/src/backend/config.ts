@@ -45,10 +45,10 @@ export async function resolveSystemPrompt(env: NodeJS.ProcessEnv): Promise<strin
 }
 
 export function resolveLlm(env: NodeJS.ProcessEnv): { llm: LlmProvider; config: LlmProviderConfig } {
-  const apiKey = env.LLM_API_KEY ?? env.OPENROUTER_API_KEY ?? env.ANTHROPIC_API_KEY;
+  const apiKey = env.GEMINI_API_KEY ?? env.LLM_API_KEY ?? env.OPENROUTER_API_KEY ?? env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "Falta una API key (LLM_API_KEY / OPENROUTER_API_KEY / ANTHROPIC_API_KEY) para el backend.",
+      "Falta una API key (GEMINI_API_KEY / LLM_API_KEY / OPENROUTER_API_KEY / ANTHROPIC_API_KEY) para el backend.",
     );
   }
 
@@ -66,9 +66,9 @@ export function resolveLlm(env: NodeJS.ProcessEnv): { llm: LlmProvider; config: 
         }
       : {
           kind: "openai-compatible",
-          baseURL: (env.LLM_BASE_URL ?? "https://openrouter.ai/api/v1").replace(/\/$/, ""),
+          baseURL: (env.LLM_BASE_URL ?? "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/$/, ""),
           apiKey,
-          model: env.LLM_MODEL ?? "openai/gpt-4o-mini",
+          model: env.LLM_MODEL ?? "gemini-3.5-flash-lite",
           maxTokens,
         };
 

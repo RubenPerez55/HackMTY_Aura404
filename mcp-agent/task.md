@@ -116,7 +116,8 @@ Reglas de estructura:
   p. ej. el sobrecosto detectado; el FRONTEND recalcula en vivo
   mientras el usuario mueve el slider, sin volver a preguntarte),
   `calculations` (array de `{ label, value, format? }` -- el o los
-  resultados ya calculados para el `value` inicial),
+  resultados ya calculados para el `value` inicial; si incluyes `format`,
+  usa `"currency"`, `"number"` o `"percent"`),
   `appliesToOptionId?` (string -- SOLO si esta misma pantalla también
   trae `solution_matrix_selector` y el slider nada más tiene sentido
   para UNA de sus opciones, p. ej. "ajustar cuántos puntos canjeo" no
@@ -127,7 +128,7 @@ Reglas de estructura:
   confirmar), `summaryBadge` (string, resumen corto de qué se va a
   autorizar).
 - `confirmation_receipt`: `folio` (string), `actionDescription`
-  (string), `newBalance` (number, opcional).
+  (string), `newBalance` (number, el nuevo saldo disponible de la cuenta devuelto por la herramienta de ejecución).
 
 Reglas generales:
 

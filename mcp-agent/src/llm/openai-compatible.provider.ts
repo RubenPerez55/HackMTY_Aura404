@@ -18,6 +18,7 @@ interface OpenAIToolCall {
   id: string;
   type: "function";
   function: { name: string; arguments: string };
+  extra_content?: unknown;
 }
 
 interface OpenAICompatibleResponse {
@@ -29,12 +30,12 @@ interface OpenAICompatibleResponse {
   }>;
 }
 
-const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
+const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 
 /**
  * Proveedor "compatible con OpenAI" usando `fetch` nativo (sin SDK extra).
  *
- * Cubre OpenRouter, Ollama, LM Studio, vLLM, llama.cpp, Groq, Together, etc.
+ * Cubre Gemini, OpenRouter, Ollama, LM Studio, vLLM, llama.cpp, Groq, Together, etc.
  * Traduce el formato neutral (anthropic-style) al formato de
  * `chat/completions`:
  *   - texto            -> content
@@ -129,6 +130,7 @@ export class OpenAICompatibleLlmProvider implements LlmProvider {
                 name: block.name,
                 arguments: JSON.stringify(block.input),
               },
+              ...(block.extra_content ? { extra_content: block.extra_content } : {}),
             })),
           });
         } else if (textParts.length > 0) {
@@ -197,6 +199,7 @@ export class OpenAICompatibleLlmProvider implements LlmProvider {
         id: call.id,
         name: call.function?.name ?? "",
         input,
+        extra_content: call.extra_content,
       };
       toolUses.push(use);
       content.push(use);

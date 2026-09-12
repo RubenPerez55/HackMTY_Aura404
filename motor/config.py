@@ -205,6 +205,8 @@ UMBRAL_COBRO_INDIVIDUAL = 5000.0
 Z_SCORE_PICO = 2.5
 STD_MINIMA_PICO = 200.0
 MULTIPLO_PICO = 3.0
+UMBRAL_VENTANA_7_DIAS = 12000.0
+MULTIPLO_BASELINE_7_DIAS = 3.0
 
 # ---------------------------------------------------------------------------
 # Regla 2: anualidad ya cobrada.

@@ -17,6 +17,7 @@ export type LlmToolUseBlock = {
   id: string;
   name: string;
   input: Record<string, unknown>;
+  extra_content?: unknown;
 };
 
 export type LlmToolResultBlock = {

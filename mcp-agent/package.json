@@ -14,6 +14,7 @@
     "serve:banking": "tsx src/mcp-server/banking-server.ts",
     "smoke:banking": "tsx scripts/banking-smoke.ts",
     "smoke:backend": "tsx scripts/backend-smoke.ts",
+    "test:flow": "tsx scripts/test-client-flow.ts",
     "probe": "tsx scripts/mcp-probe.ts",
     "smoke": "tsx examples/smoke-test.ts"
   },
