@@ -29,12 +29,12 @@ interface OpenAICompatibleResponse {
   }>;
 }
 
-const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
+const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 
 /**
  * Proveedor "compatible con OpenAI" usando `fetch` nativo (sin SDK extra).
  *
- * Cubre OpenRouter, Ollama, LM Studio, vLLM, llama.cpp, Groq, Together, etc.
+ * Cubre Gemini, OpenRouter, Ollama, LM Studio, vLLM, llama.cpp, Groq, Together, etc.
  * Traduce el formato neutral (anthropic-style) al formato de
  * `chat/completions`:
  *   - texto            -> content

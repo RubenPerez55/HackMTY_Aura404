@@ -59,10 +59,10 @@ function loadConfig(argv: string[], systemPrompt: string): AppConfig {
     | "openai-compatible";
 
   const apiKey =
-    process.env.LLM_API_KEY ?? process.env.OPENROUTER_API_KEY ?? process.env.ANTHROPIC_API_KEY;
+    process.env.GEMINI_API_KEY ?? process.env.LLM_API_KEY ?? process.env.OPENROUTER_API_KEY ?? process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "Falta una API key (LLM_API_KEY / OPENROUTER_API_KEY / ANTHROPIC_API_KEY). " +
+      "Falta una API key (GEMINI_API_KEY / LLM_API_KEY / OPENROUTER_API_KEY / ANTHROPIC_API_KEY). " +
         "Copia .env.example a .env y configura.",
     );
   }
@@ -78,9 +78,9 @@ function loadConfig(argv: string[], systemPrompt: string): AppConfig {
         }
       : {
           kind: "openai-compatible",
-          baseURL: (process.env.LLM_BASE_URL ?? "https://openrouter.ai/api/v1").replace(/\/$/, ""),
+          baseURL: (process.env.LLM_BASE_URL ?? "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/$/, ""),
           apiKey,
-          model: process.env.LLM_MODEL ?? "openai/gpt-4o-mini",
+          model: process.env.LLM_MODEL ?? "gemini-2.5-flash",
           maxTokens,
         };
 
