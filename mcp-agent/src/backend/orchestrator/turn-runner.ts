@@ -1,5 +1,6 @@
 import { AgentHarness, type AgentPolicy } from "../../agent/harness.js";
 import { AgentLoop } from "../../agent/loop.js";
+import { parseA2uiAnswer } from "../../agent/a2ui-contract.js";
 import type { LlmProvider } from "../../llm/provider.js";
 import type { AgentMcpClient } from "../../mcp/types.js";
 import { EventBus } from "../events/bus.js";
@@ -71,10 +72,18 @@ export class TurnRunner {
       session.lastError = undefined;
       session.updatedAt = new Date().toISOString();
 
+      // El LLM compone el A2UI el mismo (no un server MCP -- ver decisión
+      // del equipo en docs/03-arquitectura-tecnica/04-a2ui-generado-por-
+      // el-agente.md). Aquí solo VALIDAMOS su respuesta contra el
+      // contrato antes de mandarla al frontend; si no es A2UI válido,
+      // `ui` queda en null y el frontend lo trata como texto normal.
+      const parsedUi = parseA2uiAnswer(result.finalAnswer);
+
       bus.emit({
         type: "turn.end",
         sessionId,
         finalAnswer: result.finalAnswer,
+        ui: parsedUi.ok ? parsedUi.messages : null,
         iterations: result.iterations,
         stoppedDueToLimit: result.stoppedDueToLimit,
       });

@@ -36,6 +36,15 @@ export type AgentEvent =
       type: "turn.end";
       sessionId: string;
       finalAnswer: string | null;
+      /**
+       * Si `finalAnswer` es JSON válido de A2UI (ver
+       * `src/agent/a2ui-contract.ts`), aquí van los mensajes ya
+       * validados y listos para el runtime del frontend
+       * (`frontend/src/a2ui/reducer.js`). `null` si el LLM respondió
+       * en texto normal (la mayoría de los turnos) o si el JSON no
+       * cumplió el contrato.
+       */
+      ui: import("../../agent/a2ui-contract.js").A2uiMessage[] | null;
       iterations: number;
       stoppedDueToLimit: boolean;
     }

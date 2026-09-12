@@ -1,5 +1,15 @@
 # 3. La tool `render_component` — implementación real (paso 3 de A2UI)
 
+> **⚠️ ACTUALIZACIÓN (superado):** después de discutirlo con el equipo de
+> backend, se revirtió el diseño de este documento. El motivo: la propia
+> lámina/diagrama del reto separa "MCP" (datos/herramientas/acciones) de
+> "A2UI" (la interfaz, generada por el **Agente financiero**, no por un
+> Server MCP) como dos piezas distintas — meter la generación de A2UI en
+> un Server MCP contradecía esa separación. La decisión final está en
+> `04-a2ui-generado-por-el-agente.md`. Este documento se deja como
+> registro histórico de la primera iteración (y sigue siendo útil para
+> entender el formato de los mensajes A2UI en sí, que no cambió).
+
 Este documento cierra, con código ya probado, las dudas de arquitectura
 que surgieron con el equipo de backend (¿el JSON se genera en el Harness
 o en el Server? ¿hay un MCP server "para el front"?). Resumen de esas
