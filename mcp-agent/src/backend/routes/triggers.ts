@@ -58,6 +58,34 @@ export function registerTriggers(app: FastifyInstance, deps: RouteDeps): void {
       }
     }
 
+    // Si es un pico de servicio (ej. recibo atípico de CFE), simular el cobro de la luz en cuenta
+    if (event.tipo === "SERVICE_SPIKE" && userId) {
+      const user = deps.data.getUser(userId);
+      if (user) {
+        const monto = Number(event.monto_actual || 2450);
+        const saldoAnterior = user.saldo_ahorro ?? 0;
+        const saldoRestante = Math.max(0, Number((saldoAnterior - monto).toFixed(2)));
+
+        // Deducir del saldo disponible
+        deps.data.updateUser(userId, {
+          saldo_ahorro: saldoRestante,
+        });
+
+        // Registrar la transacción de cobro del servicio
+        const tx = deps.data.appendTransaction({
+          usuario: userId,
+          categoria: "Servicios",
+          monto,
+          descripcion: `${(event.servicio as string) || "CFE"} Suministro Eléctrico - Consumo bimestral atípico`,
+        });
+
+        // Inyectar en el evento el transaction_id real y los saldos para el agente
+        event.transaction_id = tx.id_transaccion;
+        event.saldo_anterior = saldoAnterior;
+        event.saldo_restante = saldoRestante;
+      }
+    }
+
     const { session, queued } = deps.orchestrator.triggerImpact(payload);
     return reply.code(202).send({
       sessionId: session.id,

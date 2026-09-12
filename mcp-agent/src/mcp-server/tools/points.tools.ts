@@ -146,7 +146,27 @@ export function registerPointsTools(server: McpServer, data: BankDataSource): vo
       const cargoNetoDebito = Number(Math.max(0, chargeAmount - bonificacionMxn).toFixed(2));
       const nuevoSaldoPuntos = puntosActuales - puntosRequeridos;
       const saldoActual = user.saldo_ahorro ?? 0;
-      const nuevoSaldoCuenta = Number(Math.max(0, saldoActual - cargoNetoDebito).toFixed(2));
+
+      // Verificar si el cargo ya había sido debitado de la cuenta (como CFE al detonarse el impacto)
+      const txs = data.listTransactions({ usuario });
+      const isAlreadyDebited =
+        (transaction_id && txs.some((t) => String(t.id_transaccion) === String(transaction_id))) ||
+        txs.some((t) => (t.descripcion || "").toLowerCase().includes("cfe"));
+
+      let nuevoSaldoCuenta = saldoActual;
+      if (isAlreadyDebited) {
+        // Reintegrar la bonificación por puntos al saldo disponible
+        nuevoSaldoCuenta = Number((saldoActual + bonificacionMxn).toFixed(2));
+      } else {
+        // Debitar el monto neto si no había sido cobrado previamente (ej. Anualidad)
+        nuevoSaldoCuenta = Number(Math.max(0, saldoActual - cargoNetoDebito).toFixed(2));
+        data.appendTransaction({
+          usuario,
+          categoria: "Servicios",
+          monto: cargoNetoDebito,
+          descripcion: `Pago ${serviceLabel} (neto tras amortiguar $${bonificacionMxn.toFixed(2)} MXN con puntos)`,
+        });
+      }
 
       // 1. Actualizar en base de datos real: saldo de débito y puntos de fidelidad
       data.updateUser(usuario, {
@@ -154,15 +174,7 @@ export function registerPointsTools(server: McpServer, data: BankDataSource): vo
         puntos_fidelidad: nuevoSaldoPuntos,
       });
 
-      // 2. Registrar cobro del servicio con la amortiguación de puntos aplicada
-      data.appendTransaction({
-        usuario,
-        categoria: "Servicios",
-        monto: cargoNetoDebito,
-        descripcion: `Pago ${serviceLabel} (neto tras amortiguar $${bonificacionMxn.toFixed(2)} MXN con puntos)`,
-      });
-
-      // 3. Registrar movimiento de bonificación de lealtad
+      // 2. Registrar movimiento de bonificación de lealtad
       data.appendTransaction({
         usuario,
         categoria: "Bonificación Lealtad",

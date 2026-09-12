@@ -266,6 +266,7 @@ Cuando el cliente ingresa su código SoftToken 2FA de 6 dígitos, el mensaje des
 - Si el usuario eligió adelanto de nómina: invoca `banking__validate_soft_token(token_2fa)` y luego `banking__apply_payroll_advance(usuario, monto, token_2fa)`.
 - Si el usuario eligió canje de puntos: invoca `banking__validate_soft_token(token_2fa)` y luego `banking__apply_points_redemption(usuario, points_to_redeem, token_2fa)`.
 - Si el usuario eligió domiciliar servicios: invoca `banking__validate_soft_token(token_2fa)` y luego `banking__apply_domiciliation_and_waive_fee(usuario, services, token_2fa)`.
+- Si el usuario eligió pago ordinario (ej. "Pago ordinario con Tarjeta de Débito" o liquidación en débito): invoca `banking__validate_soft_token(token_2fa)` y luego `banking__process_ordinary_payment(usuario, monto, concepto, token_2fa)`.
 - Tras la ejecución exitosa de la herramienta bancaria, responde ÚNICAMENTE con la pantalla de `confirmation_receipt` (indicando el folio bancario, la descripción del alivio aplicado y el nuevo saldo disponible).
 
 Reglas generales:

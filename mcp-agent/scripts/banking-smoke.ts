@@ -51,6 +51,7 @@ async function runBankingSmoke(): Promise<void> {
     "get_payroll_calendar",
     "simulate_payroll_advance",
     "apply_payroll_advance",
+    "process_ordinary_payment",
   ];
 
   for (const req of requiredTools) {
@@ -213,7 +214,18 @@ async function runBankingSmoke(): Promise<void> {
   assert.ok(execAdvance.folio_bancario.startsWith("FOL-NOM-"));
   assert.equal(execAdvance.monto_depositado, 3000);
   assert.ok(execAdvance.nuevo_saldo_disponible > execAdvance.saldo_anterior_debito);
-  console.log(`✔ Adelanto autorizado y depositado: Folio ${execAdvance.folio_bancario}, Nuevo saldo: $${execAdvance.nuevo_saldo_disponible} MXN.`);
+  // 12. Probar process_ordinary_payment con SoftToken
+  console.log("\n--- TEST 13: Pago ordinario de servicio con SoftToken ---");
+  const execPayment = await call("process_ordinary_payment", {
+    usuario: "Ruben Perez",
+    monto: 2450,
+    concepto: "CFE Suministro Eléctrico",
+    token_2fa: "123456",
+  });
+  assert.equal(execPayment.success, true);
+  assert.ok(execPayment.folio_bancario.startsWith("FOL-DEB-"));
+  assert.equal(execPayment.monto_pagado, 2450);
+  console.log(`✔ Pago ordinario procesado y confirmado: Folio ${execPayment.folio_bancario}, Saldo: $${execPayment.nuevo_saldo_disponible} MXN.`);
 
   await client.close();
   console.log("\n==================================================================");
