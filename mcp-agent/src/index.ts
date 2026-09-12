@@ -80,7 +80,7 @@ function loadConfig(argv: string[], systemPrompt: string): AppConfig {
           kind: "openai-compatible",
           baseURL: (process.env.LLM_BASE_URL ?? "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/$/, ""),
           apiKey,
-          model: process.env.LLM_MODEL ?? "gemini-2.5-flash",
+          model: process.env.LLM_MODEL ?? "gemini-3.5-flash-lite",
           maxTokens,
         };
 
