@@ -48,12 +48,13 @@ async function runBankingSmoke(): Promise<void> {
     "apply_domiciliation_and_waive_fee",
     "simulate_installments",
     "apply_installments",
+    "get_payroll_calendar",
   ];
 
   for (const req of requiredTools) {
     assert.ok(toolNames.includes(req), `Herramienta faltante: ${req}`);
   }
-  console.log("\n✔ Todas las 9 herramientas obligatorias de spec.md están registradas.\n");
+  console.log(`\n✔ Todas las ${requiredTools.length} herramientas obligatorias de spec.md están registradas.\n`);
 
   // Helper para invocar y parsear resultado
   const call = async (name: string, input: Record<string, unknown>) => {
@@ -173,6 +174,21 @@ async function runBankingSmoke(): Promise<void> {
   assert.ok(domExec.folio_bancario.startsWith("FOL-DOM-"));
   assert.equal(domExec.cargo_anualidad_final_mxn, 0.0);
   console.log(`✔ Domiciliación autorizada: Folio bancario ${domExec.folio_bancario}, Anualidad condonada a $0.00 MXN.`);
+
+  // 9. Probar cálculo de calendario de nómina y subsistencia quincenal (RF-01.3 & liquidity_shock_card)
+  console.log("\n--- TEST 10: Calendario de nómina y subsistencia quincenal ---");
+  const payroll = await call("get_payroll_calendar", {
+    usuario: "Hector Barrera",
+    fecha_referencia: "2026-09-12",
+  });
+  assert.equal(payroll.usuario, "Hector Barrera");
+  assert.equal(payroll.daysUntilPayroll, 3);
+  assert.equal(payroll.proxima_fecha_dispersion, "2026-09-15");
+  assert.equal(payroll.dispersion_hoy, false);
+  assert.equal(payroll.monto_estimado_quincena, 14000);
+  assert.ok(typeof payroll.presupuesto_diario_restante === "number");
+  assert.ok(payroll.diagnostico.includes("Faltan 3 días"));
+  console.log(`✔ Calendario de nómina verificado: Faltan ${payroll.daysUntilPayroll} días para dispersión ($${payroll.monto_estimado_quincena} MXN el ${payroll.proxima_fecha_dispersion}).`);
 
   await client.close();
   console.log("\n==================================================================");

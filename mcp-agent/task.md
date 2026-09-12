@@ -39,7 +39,8 @@ Componentes disponibles (`<nombre>`) y los campos exactos que debe llevar
   `eligibleServices` (array de `{ id, label, monthlyAmount }`).
 - `liquidity_shock_card`: `transactionAmount` (number), `currentBalance`
   (number), `daysUntilPayroll` (number), `planOptions` (array de
-  `{ months, monthlyPayment, note }`).
+  `{ months, monthlyPayment, note }`). Obtén `daysUntilPayroll` llamando a
+  `banking.get_payroll_calendar`.
 - `two_factor_modal`: `actionSummary` (string, resume la acción a
   autorizar).
 - `confirmation_receipt`: `folio` (string), `actionDescription`
