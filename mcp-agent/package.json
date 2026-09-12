@@ -11,6 +11,8 @@
     "dev": "tsx src/index.ts",
     "serve": "tsx src/backend/server.ts",
     "serve:build": "node dist/backend/server.js",
+    "serve:banking": "tsx src/mcp-server/banking-server.ts",
+    "smoke:banking": "tsx scripts/banking-smoke.ts",
     "smoke:backend": "tsx scripts/backend-smoke.ts",
     "probe": "tsx scripts/mcp-probe.ts",
     "smoke": "tsx examples/smoke-test.ts"
