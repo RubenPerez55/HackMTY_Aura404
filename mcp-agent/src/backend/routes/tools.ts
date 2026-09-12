@@ -19,4 +19,21 @@ export function registerTools(app: FastifyInstance, deps: RouteDeps): void {
     }
     return reply.send({ servers });
   });
+
+  // GET /api/mcp → estado del servidor MCP y catálogo plano de herramientas
+  app.get("/api/mcp", async (_request: FastifyRequest, reply: FastifyReply) => {
+    const tools: LlmTool[] = [];
+    for (const { serverId, client } of deps.registry.entries()) {
+      const sTools = await client.listToolsForLLM();
+      tools.push(...sTools.map((t) => ({ ...t, name: `${serverId}.${t.name}` })));
+    }
+    return reply.send({
+      status: "ok",
+      server: "banorte-banking-mcp",
+      version: "1.0.0",
+      connectedServers: deps.registry.connectedIds(),
+      toolsCount: tools.length,
+      tools,
+    });
+  });
 }

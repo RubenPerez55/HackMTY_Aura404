@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
 import type { AgentPolicy } from "../agent/harness.js";
 import { createLlmProvider, type LlmProvider, type LlmProviderConfig } from "../llm/provider.js";
@@ -99,6 +100,21 @@ export function resolveMcpServersFromEnv(env: NodeJS.ProcessEnv): McpServerConfi
     if (!group.url) continue;
     servers.push({ id, transport: httpTransport(group.url, group.transport, group.token) });
   }
+
+  // Fallback por defecto: si no hay servidor bancario remoto configurado,
+  // conecta automáticamente al servidor MCP bancario local sobre stdio.
+  if (servers.length === 0) {
+    const serverScript = fileURLToPath(new URL("../mcp-server/banking-server.ts", import.meta.url));
+    servers.push({
+      id: "banking",
+      transport: {
+        kind: "stdio",
+        command: "npx",
+        args: ["tsx", serverScript],
+      },
+    });
+  }
+
   return servers;
 }
 
