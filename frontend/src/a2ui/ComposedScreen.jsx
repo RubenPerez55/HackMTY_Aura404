@@ -57,6 +57,13 @@ export default function ComposedScreen({ children, onConfirm }) {
         }
         return <Component key={child.id} data={child.data} />;
       })}
+
+      {/* Leyenda: deja claro que esta pantalla no es un mock -- el LLM
+          decidió estos componentes y sus datos a partir del análisis del
+          estímulo + las tools MCP (ver task.md). */}
+      <p className="text-center text-[10px] text-gray-300 pt-1">
+        Componente generado tras análisis de LLM
+      </p>
     </div>
   );
 }

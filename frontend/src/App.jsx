@@ -238,8 +238,33 @@ export default function App() {
   const firstActiveCard = selectedUser?.tarjetas_activas?.[0];
 
   return (
-    <div className="min-h-screen flex justify-center items-center p-4">
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200 flex flex-col h-[750px]">
+    <div className="min-h-screen flex flex-col lg:flex-row justify-center items-center gap-6 p-4">
+      {/* Demo Controller: fuera del "teléfono" -- aquí viven los botones
+          que simulan al motor de detección de impacto (todavía no existe
+          ese servicio real corriendo). Cuando haya más casos de uso
+          definidos (anualidad, etc.), cada uno agrega su propio botón
+          aquí, agrupado por cliente/escenario. */}
+      <aside className="w-full max-w-xs lg:w-64 bg-white rounded-2xl shadow-xl border border-gray-200 p-4 order-2 lg:order-1">
+        <h2 className="text-sm font-bold text-gray-900 mb-1">Demo Controller</h2>
+        <p className="text-xs text-gray-400 mb-3">
+          Simula los estímulos que en producción mandaría el motor de
+          detección real.
+        </p>
+        <div className="flex flex-col gap-2">
+          {Object.entries(DEMO_TRIGGERS).map(([key, def]) => (
+            <button
+              key={key}
+              onClick={() => fireDemoTrigger(key)}
+              disabled={!selectedUserId}
+              className="text-left text-xs font-semibold bg-gray-900 disabled:bg-gray-300 text-white px-3 py-2 rounded-xl"
+            >
+              {def.label}
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200 flex flex-col h-[750px] order-1 lg:order-2">
         {/* Header / saldo */}
         <header className="bg-[#EB0029] text-white px-5 pt-8 pb-6 rounded-b-3xl shadow-md">
           <div className="flex justify-between items-center mb-4">
@@ -297,25 +322,6 @@ export default function App() {
             npm run serve en mcp-agent?
           </div>
         )}
-
-        {/* Estímulos de demo: simulan al motor de detección de impacto */}
-        <section className="px-5 pt-4">
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-            Estímulos (demo)
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(DEMO_TRIGGERS).map(([key, def]) => (
-              <button
-                key={key}
-                onClick={() => fireDemoTrigger(key)}
-                disabled={!selectedUserId}
-                className="text-xs font-semibold bg-gray-900 disabled:bg-gray-300 text-white px-3 py-2 rounded-xl"
-              >
-                {def.label}
-              </button>
-            ))}
-          </div>
-        </section>
 
         {/* Zona de alertas (hiperpersonalización) + movimientos */}
         <section className="px-5 py-2 flex-1 overflow-y-auto">

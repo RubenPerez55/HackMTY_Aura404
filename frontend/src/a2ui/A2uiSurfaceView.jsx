@@ -23,5 +23,12 @@ export default function A2uiSurfaceView({ surface, onConfirm, onCancel }) {
   }
 
   const Component = resolveComponent(surface.component);
-  return <Component data={surface.data} onConfirm={onConfirm} onCancel={onCancel} />;
+  return (
+    <div>
+      <Component data={surface.data} onConfirm={onConfirm} onCancel={onCancel} />
+      <p className="text-center text-[10px] text-gray-300 pt-1">
+        Componente generado tras análisis de LLM
+      </p>
+    </div>
+  );
 }
