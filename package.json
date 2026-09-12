@@ -1,0 +1,15 @@
+{
+  "name": "banorte-shockabsorber",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Banorte ShockAbsorber - HackMTY Aura404",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix mcp-agent run serve",
+    "build": "npm --prefix mcp-agent run build",
+    "build:all": "npm --prefix mcp-agent run build && npm --prefix frontend run build",
+    "probe": "npm --prefix mcp-agent run probe --",
+    "smoke:banking": "npm --prefix mcp-agent run smoke:banking",
+    "smoke:backend": "npm --prefix mcp-agent run smoke:backend"
+  }
+}
