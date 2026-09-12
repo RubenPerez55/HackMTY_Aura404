@@ -1,13 +1,14 @@
-// Runtime A2UI mínimo: interpreta los 3 mensajes que produce
-// `render_component` en el backend (ver mcp-agent/src/mcp-servers/
-// ui-server.ts) y mantiene el estado de las "surfaces" activas.
+// Runtime A2UI mínimo: interpreta los 3 mensajes que puede mandar el
+// LLM (ver mcp-agent/src/agent/a2ui-contract.ts) y mantiene el estado de
+// las "surfaces" activas.
 //
-// A propósito NO implementa el 100% de la spec de A2UI (JSON Pointer
-// completo, funciones de renderer, catálogo Basic de Google, etc.) --
-// para el hackatón basta con lo que su propio server realmente emite:
-// createSurface + updateComponents (un solo componente raíz) +
-// updateDataModel (siempre con path "/", reemplazo completo). Si más
-// adelante el server manda paths anidados, `setAtPointer` ya los soporta.
+// A propósito NO implementa el 100% de la spec de A2UI (funciones de
+// renderer, catálogo Basic de Google, etc.) -- pero SÍ soporta un árbol
+// real de componentes: createSurface + updateComponents (varios
+// componentes, no solo la raíz) + updateDataModel (con paths anidados,
+// no solo "/"). Eso es justo lo que necesita una pantalla COMPUESTA
+// (ver resolveSurface más abajo): un nodo raíz `surface_root` con
+// `children` listando, en orden, los componentes reales a mostrar.
 
 /** Estado inicial: sin surfaces activas. */
 export function createInitialState() {
@@ -26,7 +27,9 @@ export function applyA2uiMessage(state, message) {
           [surfaceId]: {
             surfaceId,
             rootId: root.id,
-            components: { [root.id]: { id: root.id, component: root.component } },
+            components: {
+              [root.id]: { id: root.id, component: root.component, children: root.children },
+            },
             dataModel: {},
           },
         },
@@ -70,14 +73,16 @@ export function applyA2uiMessage(state, message) {
   }
 }
 
-/** Aplica una lista de mensajes A2UI en orden (como llegan del tool.result). */
+/** Aplica una lista de mensajes A2UI en orden (como llegan de un turno). */
 export function applyA2uiMessages(state, messages) {
   return messages.reduce(applyA2uiMessage, state);
 }
 
 /**
  * Escribe `value` en `obj` en la ruta JSON Pointer `path` (RFC 6901,
- * subconjunto). `path === "/"` reemplaza el objeto completo.
+ * subconjunto). `path === "/"` reemplaza el objeto completo (modo "un
+ * solo componente"); `path === "/<id>"` escribe solo esa clave, dejando
+ * las demás intactas (modo "pantalla compuesta", una clave por hijo).
  */
 export function setAtPointer(obj, path, value) {
   if (path === "/" || path === "") return value;
@@ -95,20 +100,47 @@ export function setAtPointer(obj, path, value) {
 }
 
 /**
- * Resuelve una surface a lo que el component registry necesita:
- * qué componente montar (`component`/`catalogId`) y con qué datos
- * (`dataModel`). Devuelve `null` si la surface no existe.
+ * Resuelve una surface a lo que el frontend necesita para pintarla.
+ *
+ * Dos formas, según si la raíz tiene `children`:
+ *  - Pantalla COMPUESTA (`root.children` no vacío): regresa `children`,
+ *    la lista ordenada de componentes reales ya resueltos (`id`,
+ *    `component`, `data`) -- ver ComposedScreen.jsx, que los monta uno
+ *    tras otro.
+ *  - Un solo componente (compatibilidad hacia atrás, sin `children`):
+ *    regresa `component`/`data` igual que el diseño original -- ver
+ *    A2uiSurfaceView.jsx.
+ *
+ * Regresa `null` si la surface no existe.
  */
 export function resolveSurface(state, surfaceId) {
   const surface = state.surfaces[surfaceId];
   if (!surface) return null;
   const root = surface.components[surface.rootId];
   if (!root) return null;
+
+  if (root.children && root.children.length > 0) {
+    const children = root.children
+      .map((childId) => {
+        const child = surface.components[childId];
+        if (!child) return null; // updateComponents no llegó (todavía) para este id.
+        return {
+          id: childId,
+          component: child.component,
+          catalogId: child.catalogId,
+          data: surface.dataModel[childId],
+        };
+      })
+      .filter(Boolean);
+    return { surfaceId, component: root.component, catalogId: root.catalogId, children };
+  }
+
   return {
     surfaceId,
     component: root.component,
     catalogId: root.catalogId,
     data: surface.dataModel,
+    children: null,
   };
 }
 

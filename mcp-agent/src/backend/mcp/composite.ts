@@ -7,9 +7,13 @@ import type { McpServerConnection } from "./registry.js";
  * del registro como una sola superficie al agent loop (interfaz
  * `AgentMcpClient`).
  *
- * - Los tools se cualifican como `<serverId>.<toolName>` para evitar
- *   colisiones (p. ej. `banking.consulta_saldo`, `impact.analizar`).
- * - `callTool` des-enruta por el prefijo `<serverId>.` hacia el server
+ * - Los tools se cualifican como `<serverId>__<toolName>` para evitar
+ *   colisiones (p. ej. `banking__consulta_saldo`, `impact__analizar`).
+ *   OJO: el separador es doble guion bajo, NO un punto -- las APIs
+ *   OpenAI-compatibles (OpenRouter incluido) validan el nombre de la
+ *   tool contra `^[a-zA-Z0-9_-]+$` y rechazan el request completo
+ *   (400 "does not match pattern") si lleva un punto.
+ * - `callTool` des-enruta por el prefijo `<serverId>__` hacia el server
  *   correcto.
  */
 export class CompositeMcpClient implements AgentMcpClient {
@@ -44,18 +48,18 @@ export class CompositeMcpClient implements AgentMcpClient {
   }
 
   private resolveServer(name: string): { serverId: string; toolName: string } {
-    const dot = name.indexOf(".");
-    if (dot > 0) {
-      const prefix = name.slice(0, dot);
-      if (this.serverIds.has(prefix)) return { serverId: prefix, toolName: name.slice(dot + 1) };
+    const sep = name.indexOf("__");
+    if (sep > 0) {
+      const prefix = name.slice(0, sep);
+      if (this.serverIds.has(prefix)) return { serverId: prefix, toolName: name.slice(sep + 2) };
     }
     if (this.servers.length === 1) return { serverId: this.servers[0].serverId, toolName: name };
     throw new Error(
-      `Nombre de tool sin prefijo de servidor: "${name}". Usa "<serverId>.<toolName>".`,
+      `Nombre de tool sin prefijo de servidor: "${name}". Usa "<serverId>__<toolName>".`,
     );
   }
 }
 
 function qualify(serverId: string, toolName: string): string {
-  return `${serverId}.${toolName}`;
+  return `${serverId}__${toolName}`;
 }

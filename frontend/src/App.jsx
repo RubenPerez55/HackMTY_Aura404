@@ -1,50 +1,241 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "./components/Modal.jsx";
 import AlertBanner from "./components/AlertBanner.jsx";
-import TwoFactorModal from "./components/TwoFactorModal.jsx";
-import ConfirmationReceipt from "./components/ConfirmationReceipt.jsx";
-import { resolveComponent } from "./components/componentRegistry.js";
-import { user, pendingTriggers as initialTriggers } from "./mockData.js";
+import A2uiSurfaceView from "./a2ui/A2uiSurfaceView.jsx";
+import { createInitialState, applyA2uiMessages, listSurfaces } from "./a2ui/reducer.js";
+import {
+  listUsers,
+  listTransactions,
+  deleteSession,
+  sendMessage,
+  triggerImpact,
+  subscribeToSession,
+} from "./api.js";
 
 // App.jsx es el "shell" de la app bancaria (ver frontend/README.md).
-// Orquesta el ciclo: banner (UI base) -> modal con componente A2UI ->
-// 2FA -> confirmación -> banner retirado. Esto simula, sin backend real,
-// el flujo descrito en docs/03-arquitectura-tecnica/01-arquitectura-
-// referencia.md y spec.md.
+//
+// Ya NO simula nada localmente: crea sesiones reales contra el backend
+// (mcp-agent/src/backend), se suscribe a su SSE (`GET /api/sessions/:id
+// /events`) y deja que el AGENTE decida, turno a turno, qué componentes
+// A2UI mostrar y en qué orden (ver docs/03-arquitectura-tecnica/04-a2ui-
+// generado-por-el-agente.md). El front nunca asume un flujo fijo
+// ("después de la tarjeta viene el 2FA") -- simplemente renderiza lo que
+// el LLM haya devuelto en `ui` (una pantalla compuesta de varios
+// componentes, ver ComposedScreen.jsx).
+//
+// La pantalla del incidente NO desaparece si el usuario pregunta algo
+// por chat ("¿de dónde viene ese cobro?"): un turno de solo texto se
+// agrega al historial de chat de ese banner, sin tocar `surface`.
+//
+// "Simular estímulo" reemplaza al motor de detección de impacto (todavía
+// no existe ese servicio real / server MCP "impact"): dispara
+// POST /api/triggers/impact con el mismo payload que produciría ese
+// motor. Cuando exista de verdad, esto se sustituye por su webhook.
+const DEMO_TRIGGERS = {
+  cfe_spike: {
+    label: "Simular estímulo: recibo de CFE alto",
+    bannerTitle: "Tu recibo de CFE llegó más alto de lo normal",
+    bannerSubtitle: "Detectamos un sobrecosto vs. tu promedio habitual",
+    severity: "high",
+    buildEvent: () => ({
+      tipo: "SERVICE_SPIKE",
+      servicio: "CFE",
+      monto_actual: 2450,
+      promedio_historico: 950,
+      porcentaje_incremento: 158,
+      motivo: "temporada de calor",
+    }),
+  },
+  // El caso de "anualidad de tarjeta" es otra demo aparte, todavía sin
+  // definir -- cuando se defina, solo hay que agregar otra entrada aquí.
+};
+
+/** Convierte el `ui` (mensajes A2UI) de UN turno en la surface a mostrar. */
+function resolveTurnSurface(ui) {
+  if (!ui || ui.length === 0) return null;
+  const state = applyA2uiMessages(createInitialState(), ui);
+  return listSurfaces(state)[0] ?? null;
+}
+
 export default function App() {
-  const [triggers, setTriggers] = useState(initialTriggers);
-  const [activeTrigger, setActiveTrigger] = useState(null);
-  const [step, setStep] = useState("solution"); // solution | 2fa | receipt
-  const [actionSummary, setActionSummary] = useState("");
+  const [users, setUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [connectionError, setConnectionError] = useState(null);
+
+  // Una entrada por cada estímulo disparado: { id (=sessionId), userId,
+  // title, subtitle, severity, status: thinking|ready|error, surface
+  // (persiste aunque lleguen turnos de solo texto), chatLog (historial
+  // de preguntas libres), errorMessage }.
+  const [banners, setBanners] = useState([]);
+  const [openBannerId, setOpenBannerId] = useState(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatDraft, setChatDraft] = useState("");
+
+  const unsubscribersRef = useRef({});
+
+  // Carga inicial: usuarios reales del backend (capa de datos CSV).
+  useEffect(() => {
+    let cancelled = false;
+    listUsers()
+      .then((list) => {
+        if (cancelled) return;
+        setUsers(list);
+        setSelectedUserId((prev) => prev ?? list[0]?.usuario ?? null);
+      })
+      .catch((err) => {
+        if (!cancelled) setConnectionError(err.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Movimientos recientes reales del usuario seleccionado.
+  useEffect(() => {
+    if (!selectedUserId) return;
+    let cancelled = false;
+    listTransactions(selectedUserId, 5)
+      .then((list) => {
+        if (!cancelled) setTransactions(list);
+      })
+      .catch(() => {
+        if (!cancelled) setTransactions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedUserId]);
+
+  // Cierra todas las suscripciones SSE abiertas al desmontar.
+  useEffect(() => {
+    return () => {
+      Object.values(unsubscribersRef.current).forEach((close) => close());
+    };
+  }, []);
+
+  // Cada vez que se abre un banner distinto, el panel de dudas arranca cerrado.
+  useEffect(() => {
+    setChatOpen(false);
+    setChatDraft("");
+  }, [openBannerId]);
+
+  const patchBanner = (sessionId, patch) => {
+    setBanners((prev) =>
+      prev.map((b) => (b.id === sessionId ? { ...b, ...patch } : b)),
+    );
+  };
+
+  const subscribe = (sessionId) => {
+    const close = subscribeToSession(sessionId, {
+      onTurnEnd: (data) => {
+        const surface = resolveTurnSurface(data.ui);
+        setBanners((prev) =>
+          prev.map((b) => {
+            if (b.id !== sessionId) return b;
+            if (surface) {
+              // Llegó pantalla nueva/actualizada: reemplaza la anterior.
+              return { ...b, status: "ready", surface, errorMessage: null };
+            }
+            // Turno de solo texto (p. ej. el usuario preguntó algo por
+            // chat): NO se pierde la pantalla que ya estaba mostrando.
+            return {
+              ...b,
+              status: "ready",
+              errorMessage: null,
+              chatLog: [...b.chatLog, { role: "agent", text: data.finalAnswer || "(sin respuesta)" }],
+            };
+          }),
+        );
+      },
+      onTurnError: (data) => {
+        patchBanner(sessionId, { status: "error", errorMessage: data.message });
+      },
+    });
+    unsubscribersRef.current[sessionId] = close;
+  };
+
+  const closeSubscription = (sessionId) => {
+    unsubscribersRef.current[sessionId]?.();
+    delete unsubscribersRef.current[sessionId];
+  };
+
+  const fireDemoTrigger = async (key) => {
+    const def = DEMO_TRIGGERS[key];
+    if (!def || !selectedUserId) return;
+    try {
+      const { sessionId } = await triggerImpact({
+        userId: selectedUserId,
+        event: def.buildEvent(),
+      });
+      setBanners((prev) => [
+        ...prev,
+        {
+          id: sessionId,
+          userId: selectedUserId,
+          title: def.bannerTitle,
+          subtitle: def.bannerSubtitle,
+          severity: def.severity,
+          status: "thinking",
+          surface: null,
+          chatLog: [],
+          errorMessage: null,
+        },
+      ]);
+      subscribe(sessionId);
+    } catch (err) {
+      setConnectionError(err.message);
+    }
+  };
+
+  const openBanner = openBannerId ? banners.find((b) => b.id === openBannerId) : null;
 
   const closeModal = () => {
-    setActiveTrigger(null);
-    setStep("solution");
+    setOpenBannerId(null);
   };
 
-  const handleOpen = (trigger) => {
-    setActiveTrigger(trigger);
-    setStep("solution");
+  const finishBanner = (sessionId) => {
+    closeSubscription(sessionId);
+    setBanners((prev) => prev.filter((b) => b.id !== sessionId));
+    setOpenBannerId(null);
+    deleteSession(sessionId).catch(() => {
+      // limpieza best-effort: si falla, no afecta la demo.
+    });
   };
 
-  const handleConfirmSolution = ({ actionSummary }) => {
-    setActionSummary(actionSummary);
-    setStep("2fa");
+  // El agente decidió qué sigue (componente o texto); nosotros solo lo
+  // mostramos y, si el usuario interactúa, mandamos el siguiente turno.
+  const handleSurfaceConfirm = (banner, payload) => {
+    if (banner.surface?.component === "confirmation_receipt") {
+      finishBanner(banner.id);
+      return;
+    }
+    patchBanner(banner.id, { status: "thinking" });
+    const codeSuffix = payload?.code ? ` Código de autorización: ${payload.code}.` : "";
+    const text = (payload?.actionSummary || "Confirmo, procede con la acción sugerida.") + codeSuffix;
+    sendMessage(banner.id, text).catch((err) =>
+      patchBanner(banner.id, { status: "error", errorMessage: err.message }),
+    );
   };
 
-  const handle2faSubmit = () => {
-    setStep("receipt");
+  const handleAskQuestion = () => {
+    if (!openBanner || !chatDraft.trim()) return;
+    const text = chatDraft.trim();
+    setBanners((prev) =>
+      prev.map((b) =>
+        b.id === openBanner.id
+          ? { ...b, status: "thinking", chatLog: [...b.chatLog, { role: "user", text }] }
+          : b,
+      ),
+    );
+    setChatDraft("");
+    sendMessage(openBanner.id, text).catch((err) =>
+      patchBanner(openBanner.id, { status: "error", errorMessage: err.message }),
+    );
   };
 
-  const handleReceiptClose = () => {
-    // RF-04.2: al concluir, la alerta original se retira del dashboard.
-    setTriggers((prev) => prev.filter((t) => t.id !== activeTrigger.id));
-    closeModal();
-  };
-
-  const SolutionComponent = activeTrigger
-    ? resolveComponent(activeTrigger.uiHint)
-    : null;
+  const selectedUser = users.find((u) => u.usuario === selectedUserId);
+  const firstActiveCard = selectedUser?.tarjetas_activas?.[0];
 
   return (
     <div className="min-h-screen flex justify-center items-center p-4">
@@ -52,17 +243,31 @@ export default function App() {
         {/* Header / saldo */}
         <header className="bg-[#EB0029] text-white px-5 pt-8 pb-6 rounded-b-3xl shadow-md">
           <div className="flex justify-between items-center mb-4">
-            <div>
+            <div className="flex-1">
               <p className="text-xs uppercase tracking-wider opacity-80">
                 Hola de nuevo
               </p>
-              <h1 className="text-xl font-bold">{user.name}</h1>
+              {users.length > 1 ? (
+                <select
+                  value={selectedUserId ?? ""}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className="bg-transparent text-xl font-bold text-white -ml-1 outline-none"
+                >
+                  {users.map((u) => (
+                    <option key={u.usuario} value={u.usuario} className="text-gray-900">
+                      {u.usuario}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <h1 className="text-xl font-bold">{selectedUser?.usuario ?? "..."}</h1>
+              )}
             </div>
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative">
               <i className="fa-regular fa-bell text-lg" />
-              {triggers.length > 0 && (
+              {banners.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-[#EB0029] text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {triggers.length}
+                  {banners.length}
                 </span>
               )}
             </div>
@@ -70,15 +275,15 @@ export default function App() {
 
           <div className="bg-white text-gray-800 rounded-2xl p-4 shadow-sm mt-2">
             <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
-              <span>{user.accountLabel}</span>
-              <span>{user.accountMask}</span>
+              <span>Nivel {selectedUser?.nivel_fidelidad || "—"}</span>
+              <span>{firstActiveCard?.numero_enmascarado || "•••• ----"}</span>
             </div>
             <p className="text-2xl font-black text-gray-900 mb-2">
-              ${user.balance.toLocaleString()}{" "}
+              ${(selectedUser?.saldo_ahorro ?? 0).toLocaleString()}{" "}
               <span className="text-xs font-normal text-gray-500">MXN</span>
             </p>
             <div className="flex justify-between items-center text-xs border-t border-gray-100 pt-2 text-gray-500">
-              <span>Saldo disponible</span>
+              <span>{selectedUser?.puntos_fidelidad ?? 0} pts Banorte</span>
               <span className="text-[#EB0029] font-semibold cursor-pointer">
                 Ver detalle →
               </span>
@@ -86,23 +291,27 @@ export default function App() {
           </div>
         </header>
 
-        {/* Operaciones rápidas */}
-        <section className="px-5 py-4">
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-            Operaciones rápidas
+        {connectionError && (
+          <div className="mx-5 mt-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs rounded-xl p-3">
+            No se pudo conectar al backend ({connectionError}). ¿Está corriendo
+            npm run serve en mcp-agent?
+          </div>
+        )}
+
+        {/* Estímulos de demo: simulan al motor de detección de impacto */}
+        <section className="px-5 pt-4">
+          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+            Estímulos (demo)
           </h2>
-          <div className="grid grid-cols-4 gap-3 text-center">
-            {[
-              ["arrow-right-arrow-left", "Transferir"],
-              ["money-bill-transfer", "Pagar"],
-              ["qrcode", "CoDi"],
-              ["hand-holding-dollar", "Retiro"],
-            ].map(([icon, label]) => (
-              <button key={label} className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#EB0029] flex items-center justify-center shadow-sm">
-                  <i className={`fa-solid fa-${icon}`} />
-                </div>
-                <span className="text-xs text-gray-600 mt-2">{label}</span>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(DEMO_TRIGGERS).map(([key, def]) => (
+              <button
+                key={key}
+                onClick={() => fireDemoTrigger(key)}
+                disabled={!selectedUserId}
+                className="text-xs font-semibold bg-gray-900 disabled:bg-gray-300 text-white px-3 py-2 rounded-xl"
+              >
+                {def.label}
               </button>
             ))}
           </div>
@@ -110,42 +319,49 @@ export default function App() {
 
         {/* Zona de alertas (hiperpersonalización) + movimientos */}
         <section className="px-5 py-2 flex-1 overflow-y-auto">
-          {triggers.map((trigger) => (
-            <AlertBanner key={trigger.id} trigger={trigger} onOpen={handleOpen} />
+          {banners.map((banner) => (
+            <AlertBanner
+              key={banner.id}
+              trigger={{
+                ...banner,
+                subtitle:
+                  banner.status === "thinking" && !banner.surface
+                    ? "Analizando con el agente..."
+                    : banner.status === "error"
+                    ? `No se pudo procesar: ${banner.errorMessage ?? "error desconocido"}`
+                    : banner.subtitle,
+              }}
+              onOpen={(t) => setOpenBannerId(t.id)}
+            />
           ))}
 
           <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-2">
             Movimientos recientes
           </h2>
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
-                  <i className="fa-solid fa-cart-shopping text-sm" />
+            {transactions.length === 0 && (
+              <p className="text-xs text-gray-400">Sin movimientos recientes.</p>
+            )}
+            {transactions.map((tx) => (
+              <div key={tx.id_transaccion} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    <i className="fa-solid fa-cart-shopping text-sm" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">
+                      {tx.categoria}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      {new Date(tx.fecha).toLocaleDateString("es-MX")}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">
-                    Supermercado
-                  </p>
-                  <p className="text-[10px] text-gray-400">Hoy, 14:30</p>
-                </div>
+                <span className="text-sm font-bold text-gray-800">
+                  -${Number(tx.monto ?? 0).toLocaleString()}
+                </span>
               </div>
-              <span className="text-sm font-bold text-gray-800">-$1,240.00</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-                  <i className="fa-solid fa-arrow-down text-sm" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">
-                    Depósito SPEI
-                  </p>
-                  <p className="text-[10px] text-gray-400">Ayer, 09:15</p>
-                </div>
-              </div>
-              <span className="text-sm font-bold text-green-600">+$5,000.00</span>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -170,26 +386,128 @@ export default function App() {
         </nav>
       </div>
 
-      <Modal open={!!activeTrigger} onClose={closeModal}>
-        {activeTrigger && step === "solution" && SolutionComponent && (
-          <SolutionComponent
-            data={activeTrigger.data}
-            onConfirm={handleConfirmSolution}
-          />
+      <Modal open={!!openBanner} onClose={closeModal}>
+        {openBanner?.status === "thinking" && !openBanner.surface && (
+          <div className="text-center py-8">
+            <i className="fa-solid fa-circle-notch fa-spin text-2xl text-[#EB0029]" />
+            <p className="text-sm text-gray-500 mt-3">El agente está pensando...</p>
+          </div>
         )}
-        {step === "2fa" && (
-          <TwoFactorModal
-            actionSummary={actionSummary}
-            onSubmit={handle2faSubmit}
-            onCancel={closeModal}
-          />
+
+        {openBanner?.status === "error" && !openBanner.surface && (
+          <div className="text-center py-8">
+            <p className="text-sm text-red-600 font-semibold mb-1">
+              El agente no pudo responder
+            </p>
+            <p className="text-xs text-gray-500">{openBanner.errorMessage}</p>
+          </div>
         )}
-        {step === "receipt" && (
-          <ConfirmationReceipt
-            folio={`BN-${Math.floor(100000 + Math.random() * 900000)}`}
-            actionDescription={actionSummary}
-            onClose={handleReceiptClose}
-          />
+
+        {openBanner?.surface && (
+          <div>
+            <A2uiSurfaceView
+              surface={openBanner.surface}
+              onConfirm={(payload) => handleSurfaceConfirm(openBanner, payload)}
+              onCancel={closeModal}
+            />
+            {openBanner.status === "thinking" && (
+              <p className="text-xs text-gray-400 text-center mt-3">
+                <i className="fa-solid fa-circle-notch fa-spin mr-1" />
+                Actualizando...
+              </p>
+            )}
+            {openBanner.status === "error" && (
+              <p className="text-xs text-red-500 text-center mt-3">
+                No se pudo procesar tu última acción: {openBanner.errorMessage}
+              </p>
+            )}
+
+            {/* Chat de dudas: discreto, no tapa las gráficas/botones. */}
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              {!chatOpen ? (
+                <button
+                  onClick={() => setChatOpen(true)}
+                  className="w-full text-xs text-gray-500 font-semibold py-2"
+                >
+                  <i className="fa-regular fa-comment-dots mr-1" />
+                  ¿Tienes dudas? Pregúntale al agente
+                </button>
+              ) : (
+                <div>
+                  {openBanner.chatLog.length > 0 && (
+                    <div className="max-h-32 overflow-y-auto space-y-2 mb-2">
+                      {openBanner.chatLog.map((entry, i) => (
+                        <p
+                          key={i}
+                          className={`text-xs rounded-xl px-3 py-2 max-w-[85%] ${
+                            entry.role === "user"
+                              ? "bg-gray-900 text-white ml-auto"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {entry.text}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={chatDraft}
+                      onChange={(e) => setChatDraft(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleAskQuestion()}
+                      placeholder="Ej. ¿de dónde viene ese cobro?"
+                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm"
+                    />
+                    <button
+                      onClick={handleAskQuestion}
+                      className="bg-gray-900 text-white text-sm font-semibold px-4 rounded-xl"
+                    >
+                      Enviar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {openBanner?.status === "ready" && !openBanner.surface && (
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Respuesta del agente
+            </p>
+            <div className="space-y-2 mb-3">
+              {openBanner.chatLog.map((entry, i) => (
+                <p
+                  key={i}
+                  className={`text-sm rounded-xl px-3 py-2 max-w-[90%] ${
+                    entry.role === "user"
+                      ? "bg-gray-900 text-white ml-auto"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {entry.text}
+                </p>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={chatDraft}
+                onChange={(e) => setChatDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAskQuestion()}
+                placeholder="Responder al agente..."
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm"
+              />
+              <button
+                onClick={handleAskQuestion}
+                className="bg-[#EB0029] text-white text-sm font-semibold px-4 rounded-xl"
+              >
+                Enviar
+              </button>
+            </div>
+          </div>
         )}
       </Modal>
     </div>

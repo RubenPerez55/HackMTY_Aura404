@@ -21,11 +21,20 @@ export function registerEvents(app: FastifyInstance, deps: RouteDeps): void {
     reply.hijack();
     const res = reply.raw;
 
+    // `reply.hijack()` saca esta respuesta del ciclo normal de Fastify, así
+    // que el hook `onSend` de @fastify/cors (registrado con `origin: true`
+    // en server.ts) NUNCA corre aquí -- por eso el navegador bloqueaba el
+    // EventSource con "No 'Access-Control-Allow-Origin' header" aunque el
+    // resto de los endpoints (que sí pasan por el pipeline normal) no
+    // tenían ningún problema. Replicamos el mismo comportamiento a mano:
+    // reflejar el Origin de la petición.
+    const origin = request.headers.origin;
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
       "X-Accel-Buffering": "no",
+      ...(origin ? { "Access-Control-Allow-Origin": origin, Vary: "Origin" } : {}),
     });
     res.write("retry: 3000\n\n");
 

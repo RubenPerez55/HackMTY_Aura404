@@ -106,14 +106,27 @@ export class Orchestrator {
   }
 }
 
-/** Traduce un evento crudo del motor de impacto a un estímulo en español. */
+/**
+ * Traduce un evento crudo del motor de impacto a un estímulo en español.
+ *
+ * OJO: este texto es el primer mensaje que ve el agente para este flujo,
+ * así que le marca el tono de la respuesta. Antes decía "inicia y
+ * mantén una conversación" -- eso invitaba al modelo a contestar en
+ * prosa (que es justo el fallback de solo-texto que NO queremos para
+ * esta pantalla; ver A2UI en task.md). Ahora es explícito: reunir datos
+ * con las tools y responder con el JSON de componentes, no con texto.
+ */
 function buildImpactStimulus(event: unknown): string {
   const detail = event ? `: ${JSON.stringify(event)}` : "";
   return (
     "Se detectó un impacto financiero en la cuenta del usuario" +
     `${detail}. ` +
-    "Inicia y mantén una conversación para explicarle la situación, " +
-    "consulta sus datos bancarios con las herramientas disponibles y " +
-    "ayúdale a tomar la mejor decisión."
+    "Usa las herramientas bancarias disponibles para entender a fondo la " +
+    "situación (saldo, puntos, tarjetas, historial relevante). Con esos " +
+    "datos, arma la pantalla de solución combinando los componentes de tu " +
+    "catálogo (ver 'Generación de interfaz (A2UI)' en tus instrucciones). " +
+    "Tu respuesta final para este estímulo DEBE ser el JSON de " +
+    "componentes -- no le respondas al usuario con una explicación en " +
+    "texto plano."
   );
 }

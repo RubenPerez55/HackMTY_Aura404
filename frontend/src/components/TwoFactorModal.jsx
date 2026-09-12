@@ -1,9 +1,11 @@
 import { useState } from "react";
 
 // RF-04.1 + caso límite E-02 (código inválido no reinicia el flujo).
-// Genérico: cualquiera de las tres tarjetas de solución lo usa antes de
-// ejecutar la acción real.
-export default function TwoFactorModal({ actionSummary, onSubmit, onCancel }) {
+// Se monta igual que cualquier tarjeta A2UI -- (data, onConfirm) -- para
+// que el runtime lo trate de forma genérica (ver A2uiSurfaceView.jsx):
+// cualquiera de las tres tarjetas de solución puede desembocar aquí,
+// según lo que decida el agente en el siguiente turno.
+export default function TwoFactorModal({ data, onConfirm, onCancel }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
 
@@ -12,9 +14,10 @@ export default function TwoFactorModal({ actionSummary, onSubmit, onCancel }) {
       setError("Ingresa un código válido de 6 dígitos.");
       return;
     }
-    // Demo: cualquier código de 6 dígitos se acepta.
+    // Demo: cualquier código de 6 dígitos se acepta. Esto continúa la
+    // conversación (turno N+1) -- App.jsx lo manda como mensaje al agente.
     setError("");
-    onSubmit();
+    onConfirm({ actionSummary: "Autoricé la operación con mi SoftToken (código válido)." });
   };
 
   return (
@@ -25,7 +28,7 @@ export default function TwoFactorModal({ actionSummary, onSubmit, onCancel }) {
       <h2 className="text-lg font-bold text-gray-900 mb-2">
         Confirma con tu SoftToken
       </h2>
-      <p className="text-sm text-gray-600 mb-4">{actionSummary}</p>
+      <p className="text-sm text-gray-600 mb-4">{data.actionSummary}</p>
 
       <input
         type="text"
@@ -44,12 +47,11 @@ export default function TwoFactorModal({ actionSummary, onSubmit, onCancel }) {
       >
         Confirmar
       </button>
-      <button
-        onClick={onCancel}
-        className="w-full text-gray-500 text-sm py-2"
-      >
-        Cancelar (no se moverá ningún fondo)
-      </button>
+      {onCancel && (
+        <button onClick={onCancel} className="w-full text-gray-500 text-sm py-2">
+          Cancelar (no se moverá ningún fondo)
+        </button>
+      )}
     </div>
   );
 }
