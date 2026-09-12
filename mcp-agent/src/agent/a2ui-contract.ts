@@ -46,7 +46,7 @@ export const ComponentDataSchemas = {
     currentValue: z.number(),
     baselineValue: z.number().optional(),
     deltaText: z.string().optional(),
-    status: z.enum(["critical", "warning", "success"]),
+    status: z.string().optional().default("warning"),
   }),
   trend_history_chart: z.object({
     bars: z.array(
@@ -57,7 +57,7 @@ export const ComponentDataSchemas = {
         isProjected: z.boolean().optional(),
       }),
     ),
-    currency: z.string(),
+    currency: z.string().optional().default("MXN"),
   }),
   solution_matrix_selector: z.object({
     options: z.array(
@@ -91,7 +91,7 @@ export const ComponentDataSchemas = {
       z.object({
         label: z.string(),
         value: z.number(),
-        format: z.enum(["currency", "number", "percent"]).optional(),
+        format: z.string().optional(),
       }),
     ),
   }),
@@ -108,7 +108,7 @@ export const ComponentDataSchemas = {
   }),
   security_action_gate: z.object({
     actionLabel: z.string(),
-    summaryBadge: z.string(),
+    summaryBadge: z.string().optional().default(""),
   }),
 
   // --- catálogo "monolítico" original (legacy) ---
@@ -229,7 +229,16 @@ export function parseA2uiAnswer(text: string | null): ParsedA2uiAnswer {
   try {
     raw = JSON.parse(unfenced);
   } catch {
-    return { ok: false, reason: "No es JSON válido (probablemente es una respuesta en texto normal)." };
+    const arrayMatch = unfenced.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (arrayMatch) {
+      try {
+        raw = JSON.parse(arrayMatch[0]);
+      } catch {
+        return { ok: false, reason: "No es JSON válido (probablemente es una respuesta en texto normal)." };
+      }
+    } else {
+      return { ok: false, reason: "No es JSON válido (probablemente es una respuesta en texto normal)." };
+    }
   }
 
   const parsed = a2uiAnswerSchema.safeParse(raw);

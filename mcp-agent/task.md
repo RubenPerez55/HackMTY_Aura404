@@ -108,7 +108,7 @@ Reglas de estructura:
   p. ej. el sobrecosto detectado; el FRONTEND recalcula en vivo
   mientras el usuario mueve el slider, sin volver a preguntarte),
   `calculations` (array de `{ label, value, format? }` -- el o los
-  resultados ya calculados para el `value` inicial).
+  resultados ya calculados para el `value` inicial; si incluyes `format`, usa `"currency"`, `"number"` o `"percent"`).
 - `security_action_gate`: `actionLabel` (string, texto del botón de
   confirmar), `summaryBadge` (string, resumen corto de qué se va a
   autorizar).

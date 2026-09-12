@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 function formatValue(v, format) {
-  if (format === "currency") return `$${Math.round(v).toLocaleString()}`;
-  if (format === "percent") return `${Math.round(v)}%`;
+  if (format === "currency" || format === "MXN" || format === "$") return `$${Math.round(v).toLocaleString()}`;
+  if (format === "percent" || format === "%") return `${Math.round(v)}%`;
   return Math.round(v).toLocaleString();
 }
 
