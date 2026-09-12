@@ -8,6 +8,7 @@
  *   npm run probe -- --transport stdio --list   (usa MCP_SERVER_COMMAND/ARGS)
  */
 import "dotenv/config";
+import { fileURLToPath } from "node:url";
 
 import { McpClient } from "../src/mcp/client.js";
 import { createTransport, resolveTransportFromEnv, type McpTransportConfig } from "../src/mcp/transport.js";
@@ -70,6 +71,14 @@ async function main(): Promise<void> {
   const transportConfig: McpTransportConfig = resolveTransportFromEnv(
     { ...process.env, MCP_TRANSPORT: args.transport ?? process.env.MCP_TRANSPORT, MCP_SERVER_URL: url, MCP_TOKEN: token },
   );
+
+  // Si se usa stdio y no hay comando explícito en env, conecta por defecto al servidor MCP bancario
+  if (transportConfig.kind === "stdio" && !process.env.MCP_SERVER_COMMAND) {
+    const serverScript = fileURLToPath(new URL("../src/mcp-server/banking-server.ts", import.meta.url));
+    transportConfig.command = "npx";
+    transportConfig.args = ["tsx", serverScript];
+  }
+
   const mcpClient = new McpClient({
     transport: createTransport(transportConfig),
     clientInfo: { name: "mcp-probe", version: "1.0.0" },

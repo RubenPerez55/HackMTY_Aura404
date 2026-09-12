@@ -76,6 +76,26 @@ export function csvToObjects(raw: string): Record<string, string>[] {
   });
 }
 
+/** Serializa un arreglo de objetos a formato CSV RFC 4180. */
+export function objectsToCsv(records: Record<string, unknown>[], headers?: string[]): string {
+  if (records.length === 0) return "";
+  const cols = headers ?? Object.keys(records[0]);
+  const escapeCell = (val: unknown): string => {
+    if (val === null || val === undefined) return "";
+    const str = String(val);
+    if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const lines = [cols.join(",")];
+  for (const rec of records) {
+    lines.push(cols.map((col) => escapeCell(rec[col])).join(","));
+  }
+  return lines.join("\n") + "\n";
+}
+
 /** `""` -> null; resto con trim. */
 export function strOrNull(value: string): string | null {
   const trimmed = value.trim();
