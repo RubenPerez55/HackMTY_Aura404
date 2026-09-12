@@ -91,8 +91,10 @@ Reglas de estructura:
 - `trend_history_chart`: `bars` (array de `{ label, amount, isAnomaly?,
   isProjected? }`), `currency` (string).
 - `solution_matrix_selector`: `options` (array de `{ id, title,
-  subtitle, tag?, recommended?, iconName }`), `selectedId` (string --
-  cuál va preseleccionada).
+  subtitle, tag?, recommended?, iconName? }` -- intenta poner `iconName`
+  con uno de: `points`, `installments`, `domiciliation` [si no aplica
+  ninguno, puedes omitirlo; el frontend usa un ícono genérico]),
+  `selectedId` (string -- cuál va preseleccionada).
 - `dynamic_value_slider`: `min`, `max`, `step`, `value` (numbers),
   `unitLabel` (string), `basis` (number -- el monto total a cubrir,
   p. ej. el sobrecosto detectado; el FRONTEND recalcula en vivo

@@ -67,7 +67,12 @@ export const ComponentDataSchemas = {
         subtitle: z.string(),
         tag: z.string().optional(),
         recommended: z.boolean().optional(),
-        iconName: z.string(),
+        // Opcional a propósito: el frontend (SolutionMatrixSelector.jsx)
+        // ya cae a un ícono por default si el LLM lo omite o inventa uno
+        // fuera del set conocido -- no vale la pena descartar TODA la
+        // pantalla (metric headers, slider, security gate...) por un
+        // campo puramente cosmético.
+        iconName: z.string().optional(),
       }),
     ),
     selectedId: z.string(),
