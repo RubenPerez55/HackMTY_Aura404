@@ -107,7 +107,7 @@ Reglas de estructura:
 - `trend_history_chart`: `bars` (array de `{ label, amount, isAnomaly?,
   isProjected? }`), `currency` (string).
 - `solution_matrix_selector`: `options` (array de `{ id, title,
-  subtitle, tag?, recommended?, iconName? }` -- intenta poner `iconName`
+  subtitle, tag?, recommended?, iconName? }` -- si usas `recommended: true`, NO pongas "Recomendado" en `tag`, usa `tag` solo para beneficios adicionales como "Sin comisión" o simplemente omítelo; intenta poner `iconName`
   con uno de: `points`, `installments`, `domiciliation` [si no aplica
   ninguno, puedes omitirlo; el frontend usa un ícono genérico]),
   `selectedId` (string -- cuál va preseleccionada).

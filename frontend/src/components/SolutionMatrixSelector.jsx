@@ -16,6 +16,10 @@ export default function SolutionMatrixSelector({ data, selectedId, onSelect }) {
     <div className="space-y-2">
       {data.options.map((option) => {
         const isSelected = option.id === current;
+        const isRecommended = Boolean(option.recommended || /recomendad/i.test(option.tag || ""));
+        // Si el tag es una repetición de "Recomendado", no mostrarlo a la derecha
+        const hasCustomTag = option.tag && !/recomendad/i.test(option.tag);
+
         return (
           <button
             key={option.id}
@@ -27,27 +31,27 @@ export default function SolutionMatrixSelector({ data, selectedId, onSelect }) {
             }`}
           >
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                 isSelected ? "bg-[#EB0029] text-white" : "bg-gray-100 text-gray-500"
               }`}
             >
               <i className={`fa-solid ${ICONS[option.iconName] || ICONS.default}`} />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-sm font-semibold text-gray-800">{option.title}</p>
-                {option.recommended && (
-                  <span className="text-[9px] font-bold uppercase bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
+                {isRecommended && (
+                  <span className="text-[9px] font-bold uppercase bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                     Recomendado
                   </span>
                 )}
               </div>
               <p className="text-xs text-gray-500">{option.subtitle}</p>
             </div>
-            {option.tag && (
+            {hasCustomTag && (
               <span className="text-[10px] text-gray-400 whitespace-nowrap">{option.tag}</span>
             )}
-            {isSelected && <i className="fa-solid fa-circle-check text-[#EB0029]" />}
+            {isSelected && <i className="fa-solid fa-circle-check text-[#EB0029] shrink-0" />}
           </button>
         );
       })}
