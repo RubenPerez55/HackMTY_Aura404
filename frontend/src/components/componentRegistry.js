@@ -9,6 +9,7 @@ import SolutionMatrixSelector from "./SolutionMatrixSelector.jsx";
 import DynamicValueSlider from "./DynamicValueSlider.jsx";
 import InteractiveToggleList from "./InteractiveToggleList.jsx";
 import SecurityActionGate from "./SecurityActionGate.jsx";
+import LineGraph from "./LineGraph.jsx";
 import GenericJsonView from "./GenericJsonView.jsx";
 import BalanceCard from "./BalanceCard.jsx";
 import TransactionList from "./TransactionList.jsx";
@@ -48,6 +49,8 @@ export const componentRegistry = {
   // compuesto
   metric_delta_header: MetricDeltaHeader,
   trend_history_chart: TrendHistoryChart,
+  line_graph: LineGraph,
+  line_chart: LineGraph,
   solution_matrix_selector: SolutionMatrixSelector,
   dynamic_value_slider: DynamicValueSlider,
   interactive_toggle_list: InteractiveToggleList,

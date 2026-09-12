@@ -48,6 +48,8 @@ export default function A2uiSurfaceView({ surface, userName, onConfirm, onCancel
           component = "security_action_gate";
         } else if (Array.isArray(data.bars)) {
           component = "trend_history_chart";
+        } else if (Array.isArray(data.points) || data.anomalyValue !== undefined) {
+          component = "line_graph";
         } else if (data.min !== undefined && data.max !== undefined) {
           component = "dynamic_value_slider";
         }

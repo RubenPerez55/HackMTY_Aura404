@@ -107,6 +107,12 @@ Reglas de estructura:
   `status` ("critical" | "warning" | "success").
 - `trend_history_chart`: `bars` (array de `{ label, amount, isAnomaly?,
   isProjected? }`), `currency` (string).
+- `line_graph`: `title` (string, opcional), `subtitle` (string, opcional),
+  `points` (array opcional de `{ label, value, isAnomaly? }`), `baseline`
+  (number, opcional; promedio de referencia), `baselineLabel` (string, opcional;
+  ej. "Gasto habitual"), `anomalyValue` (number, opcional), `anomalyLabel`
+  (string, opcional), `currency` (string, default "MXN"). Gráfica continua de
+  línea con ejes con flechas y detección de pico anómalo de gasto/consumo.
 - `solution_matrix_selector`: `options` (array de `{ id, title,
   subtitle, tag?, recommended?, iconName? }` -- si usas `recommended: true`, NO pongas "Recomendado" en `tag`, usa `tag` solo para beneficios adicionales como "Sin comisión" o simplemente omítelo; intenta poner `iconName`
   con uno de: `points`, `installments`, `domiciliation` [si no aplica

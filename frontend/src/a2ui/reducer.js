@@ -150,6 +150,7 @@ export function resolveSurface(state, surfaceId) {
           id: childId,
           component: child?.component || (
             childId.startsWith("m") || childId.startsWith("h") ? "metric_delta_header" :
+            childId.startsWith("lg") || childId.startsWith("graph") ? "line_graph" :
             childId.startsWith("s") ? "solution_matrix_selector" :
             childId.startsWith("t") || childId.startsWith("l") ? "interactive_toggle_list" :
             childId.startsWith("v") ? "dynamic_value_slider" :

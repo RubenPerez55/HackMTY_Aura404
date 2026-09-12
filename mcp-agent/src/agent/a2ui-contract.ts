@@ -60,6 +60,42 @@ export const ComponentDataSchemas = {
     ),
     currency: z.string().optional().default("MXN"),
   }),
+  line_graph: z.object({
+    title: z.string().optional(),
+    subtitle: z.string().optional(),
+    points: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+          isAnomaly: z.boolean().optional(),
+        }),
+      )
+      .optional(),
+    baseline: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]).optional(),
+    baselineLabel: z.string().optional(),
+    anomalyValue: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]).optional(),
+    anomalyLabel: z.string().optional(),
+    currency: z.string().optional().default("MXN"),
+  }),
+  line_chart: z.object({
+    title: z.string().optional(),
+    subtitle: z.string().optional(),
+    points: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+          isAnomaly: z.boolean().optional(),
+        }),
+      )
+      .optional(),
+    baseline: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]).optional(),
+    baselineLabel: z.string().optional(),
+    anomalyValue: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]).optional(),
+    anomalyLabel: z.string().optional(),
+    currency: z.string().optional().default("MXN"),
+  }),
   solution_matrix_selector: z.object({
     options: z.array(
       z.object({
