@@ -226,3 +226,7 @@ mcp-demo/
 
 # macOS
 .DS_Store
+
+# --- frontend (React + Vite) ---
+frontend/node_modules/
+frontend/dist/
