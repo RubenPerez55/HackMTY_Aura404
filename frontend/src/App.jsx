@@ -263,6 +263,9 @@ export default function App() {
         userId: targetUserId,
         event: def.buildEvent(),
       });
+      // Refrescar de inmediato los datos del usuario para reflejar el cargo y nuevo saldo en pantalla
+      await refreshUserData(targetUserId);
+
       setBanners((prev) => [
         ...prev,
         {
@@ -517,6 +520,8 @@ export default function App() {
                 ? "fa-arrow-down text-emerald-600"
                 : tx.categoria === "Servicios"
                 ? "fa-bolt text-yellow-600"
+                : tx.categoria === "Salud"
+                ? "fa-heart-pulse text-red-600"
                 : tx.categoria === "Comida"
                 ? "fa-utensils text-orange-500"
                 : tx.categoria === "Transporte"
@@ -527,6 +532,8 @@ export default function App() {
                 ? "bg-emerald-50"
                 : tx.categoria === "Servicios"
                 ? "bg-yellow-50"
+                : tx.categoria === "Salud"
+                ? "bg-red-50"
                 : tx.categoria === "Comida"
                 ? "bg-orange-50"
                 : tx.categoria === "Transporte"
@@ -541,10 +548,10 @@ export default function App() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-800">
-                        {tx.categoria}
+                        {tx.descripcion ? tx.descripcion.split(" - ")[0] : tx.categoria}
                       </p>
                       <p className="text-[10px] text-gray-400">
-                        {new Date(tx.fecha).toLocaleDateString("es-MX")}
+                        {new Date(tx.fecha).toLocaleDateString("es-MX")} · {tx.categoria}
                       </p>
                     </div>
                   </div>

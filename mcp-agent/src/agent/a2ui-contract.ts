@@ -45,6 +45,7 @@ export const ComponentDataSchemas = {
     title: z.string(),
     currentValue: z.number(),
     baselineValue: z.number().optional(),
+    baselineLabel: z.string().optional(),
     deltaText: z.string().optional(),
     status: z.string().optional().default("warning"),
   }),

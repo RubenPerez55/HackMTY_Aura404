@@ -102,7 +102,8 @@ Reglas de estructura:
 ### Catálogo de componentes y los campos exactos que debe llevar `value`
 
 - `metric_delta_header`: `title` (string), `currentValue` (number),
-  `baselineValue` (number, opcional), `deltaText` (string, opcional),
+  `baselineValue` (number, opcional), `baselineLabel` (string, opcional;
+  ej. "Saldo anterior" o "Promedio habitual"), `deltaText` (string, opcional),
   `status` ("critical" | "warning" | "success").
 - `trend_history_chart`: `bars` (array de `{ label, amount, isAnomaly?,
   isProjected? }`), `currency` (string).
@@ -222,10 +223,10 @@ Reglas de estructura:
 3. **Golpe de Liquidez por Compra Extraordinaria (`LIQUIDITY_SHOCK`, Urgencia Médica)**:
    - Tools iniciales: consulta `banking__get_payroll_calendar` (para conocer días restantes para nómina y presupuesto diario) y/o `banking__simulate_installments` (monto: 18500, months: 6).
    - Pantalla generada:
-     - `metric_delta_header`: gasto extraordinario (`currentValue: 18500`, `deltaText: "Faltan X días para dispersión de nómina"`, `status: "critical"`).
+     - `metric_delta_header`: gasto extraordinario (`title: "Gasto Médico Extraordinario (Hospital Ángeles)"`, `currentValue: 18500`, `baselineValue: 36200`, `baselineLabel: "Saldo anterior"`, `deltaText: "Consumió el 51% de tu saldo disponible previo · Faltan 3 días para nómina"`, `status: "critical"`).
      - `trend_history_chart`: proyección comparativa:
-       - `{ label: "Saldo disponible actual", amount: saldo_actual }`
-       - `{ label: "Saldo con Plan Alivio", amount: saldo_actual + 18500, isProjected: true }`
+       - `{ label: "Saldo crítico actual", amount: 17700 }`
+       - `{ label: "Saldo con Plan Alivio", amount: 36200, isProjected: true }`
      - `solution_matrix_selector`: opciones:
        - `{ id: "installments_6m", title: "Plan Alivio: 6 Meses Sin Intereses", subtitle: "Recupera $18,500 MXN hoy · Cuota fija de $3,083.33/mes", recommended: true, iconName: "installments" }`
        - `{ id: "installments_3m", title: "Plan Alivio: 3 Meses Sin Intereses", subtitle: "Recupera $18,500 MXN hoy · Cuota fija de $6,166.67/mes", iconName: "installments" }`
