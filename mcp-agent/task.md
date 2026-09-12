@@ -71,7 +71,15 @@ Reglas de estructura:
   únicos dentro del mensaje (`m1`, `c1`, ... o los que prefieras).
 - No estás obligado a usar los 5 -- usa solo los que la situación
   amerite (p. ej., si no hay nada que graficar, omite
-  `trend_history_chart`).
+  `trend_history_chart`). PERO: si el estímulo que recibiste ya trae
+  una comparación numérica real (p. ej. `monto_actual` vs.
+  `promedio_historico`, como en el caso SERVICE_SPIKE/CFE), SÍ tienes
+  datos reales para graficar -- arma `trend_history_chart` con 2 barras
+  (`{ label: "Promedio histórico", amount: promedio_historico }` y
+  `{ label: "Este mes", amount: monto_actual, isAnomaly: true }`). Eso
+  ES la "gráfica de picos": no la omitas solo porque no tengas un
+  histórico mensual completo -- 2 puntos reales bastan para mostrar el
+  pico.
 - `confirmation_receipt` es distinto: se manda SOLO, como pantalla de
   un único componente (sin `surface_root` ni `children`), en un turno
   POSTERIOR, después de ejecutar la acción real con las tools:
