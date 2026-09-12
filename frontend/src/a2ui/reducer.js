@@ -41,7 +41,13 @@ export function applyA2uiMessage(state, message) {
       if (!surface) return state; // mensaje fuera de orden: se ignora, no se rompe.
       const components = { ...surface.components };
       for (const component of message.components) {
-        components[component.id] = component;
+        const existing = components[component.id] || {};
+        components[component.id] = {
+          ...existing,
+          ...component,
+          children: component.children ?? existing.children,
+          title: component.title ?? existing.title,
+        };
       }
       return {
         ...state,
@@ -119,20 +125,45 @@ export function resolveSurface(state, surfaceId) {
   const root = surface.components[surface.rootId];
   if (!root) return null;
 
-  if (root.children && root.children.length > 0) {
-    const children = root.children
+  let childIds = Array.isArray(root.children) && root.children.length > 0 ? root.children : null;
+
+  // Si la raíz no trajo children explícitamente o se limpiaron, pero es surface_root o hay más componentes
+  if (!childIds && (root.component === "surface_root" || Object.keys(surface.components).length > 1)) {
+    const candidateIds = Object.keys(surface.components).filter((id) => id !== surface.rootId);
+    if (candidateIds.length > 0) {
+      childIds = candidateIds;
+    } else {
+      const dataIds = Object.keys(surface.dataModel).filter((id) => id !== "/" && id !== surface.rootId);
+      if (dataIds.length > 0) {
+        childIds = dataIds;
+      }
+    }
+  }
+
+  if (childIds && childIds.length > 0) {
+    const children = childIds
       .map((childId) => {
         const child = surface.components[childId];
-        if (!child) return null; // updateComponents no llegó (todavía) para este id.
+        const data = surface.dataModel[childId];
+        if (!child && data === undefined) return null;
         return {
           id: childId,
-          component: child.component,
-          catalogId: child.catalogId,
-          data: surface.dataModel[childId],
+          component: child?.component || (
+            childId.startsWith("m") || childId.startsWith("h") ? "metric_delta_header" :
+            childId.startsWith("s") ? "solution_matrix_selector" :
+            childId.startsWith("t") || childId.startsWith("l") ? "interactive_toggle_list" :
+            childId.startsWith("v") ? "dynamic_value_slider" :
+            childId.startsWith("g") ? "security_action_gate" : "generic"
+          ),
+          catalogId: child?.catalogId,
+          data,
         };
       })
       .filter(Boolean);
-    return { surfaceId, component: root.component, catalogId: root.catalogId, title: root.title, children };
+
+    if (children.length > 0) {
+      return { surfaceId, component: root.component, catalogId: root.catalogId, title: root.title, children };
+    }
   }
 
   return {

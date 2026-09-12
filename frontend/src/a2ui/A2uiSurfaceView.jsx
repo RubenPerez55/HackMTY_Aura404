@@ -18,7 +18,7 @@ import ComposedScreen from "./ComposedScreen.jsx";
 export default function A2uiSurfaceView({ surface, userName, onConfirm, onCancel }) {
   if (!surface) return null;
 
-  if (surface.children) {
+  if (surface.children && surface.children.length > 0) {
     return (
       <ComposedScreen
         key={surface.surfaceId}
@@ -28,6 +28,43 @@ export default function A2uiSurfaceView({ surface, userName, onConfirm, onCancel
         onConfirm={onConfirm}
       />
     );
+  }
+
+  // Si la raíz es surface_root pero children llegó vacío o nulo,
+  // NO debemos mandar a resolveComponent("surface_root") porque caería en GenericJsonView.
+  // En su lugar, si hay datos en surface.data, montamos ComposedScreen infiriendo los componentes.
+  if (surface.component === "surface_root" && surface.data && typeof surface.data === "object") {
+    const inferredChildren = Object.entries(surface.data)
+      .filter(([id, val]) => id !== "/" && val && typeof val === "object")
+      .map(([id, data]) => {
+        let component = "generic";
+        if (data.currentValue !== undefined || data.baselineLabel !== undefined) {
+          component = "metric_delta_header";
+        } else if (Array.isArray(data.options)) {
+          component = "solution_matrix_selector";
+        } else if (Array.isArray(data.items)) {
+          component = "interactive_toggle_list";
+        } else if (data.actionLabel !== undefined) {
+          component = "security_action_gate";
+        } else if (Array.isArray(data.bars)) {
+          component = "trend_history_chart";
+        } else if (data.min !== undefined && data.max !== undefined) {
+          component = "dynamic_value_slider";
+        }
+        return { id, component, data };
+      });
+
+    if (inferredChildren.length > 0) {
+      return (
+        <ComposedScreen
+          key={surface.surfaceId}
+          userName={userName}
+          title={surface.title || "Solución Personalizada Banorte"}
+          children={inferredChildren}
+          onConfirm={onConfirm}
+        />
+      );
+    }
   }
 
   const Component = resolveComponent(surface.component);

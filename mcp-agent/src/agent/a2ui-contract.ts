@@ -43,8 +43,8 @@ export const ComponentDataSchemas = {
   // --- catálogo "compuesto" (piezas reutilizables que el LLM combina) ---
   metric_delta_header: z.object({
     title: z.string(),
-    currentValue: z.number(),
-    baselineValue: z.number().optional(),
+    currentValue: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+    baselineValue: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]).optional(),
     baselineLabel: z.string().optional(),
     deltaText: z.string().optional(),
     status: z.string().optional().default("warning"),
@@ -76,8 +76,11 @@ export const ComponentDataSchemas = {
         iconName: z.string().optional(),
       }),
     ),
-    selectedId: z.string(),
-  }),
+    selectedId: z.string().optional(),
+  }).transform((val) => ({
+    ...val,
+    selectedId: val.selectedId || val.options[0]?.id || "",
+  })),
   dynamic_value_slider: z.object({
     min: z.number(),
     max: z.number(),
@@ -108,10 +111,14 @@ export const ComponentDataSchemas = {
       z.object({
         id: z.string(),
         name: z.string(),
-        amount: z.number(),
-        currentPaymentMethod: z.string(),
-        isSelected: z.boolean(),
-      }),
+        amount: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+        currentPaymentMethod: z.string().optional().default("Manual"),
+        currentPaymentPaymentMethod: z.string().optional(),
+        isSelected: z.boolean().optional().default(false),
+      }).transform((item) => ({
+        ...item,
+        currentPaymentMethod: item.currentPaymentMethod || item.currentPaymentPaymentMethod || "Manual",
+      })),
     ),
   }),
   security_action_gate: z.object({
