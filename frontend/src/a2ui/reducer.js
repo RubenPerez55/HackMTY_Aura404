@@ -28,7 +28,7 @@ export function applyA2uiMessage(state, message) {
             surfaceId,
             rootId: root.id,
             components: {
-              [root.id]: { id: root.id, component: root.component, children: root.children },
+              [root.id]: { id: root.id, component: root.component, children: root.children, title: root.title },
             },
             dataModel: {},
           },
@@ -132,7 +132,7 @@ export function resolveSurface(state, surfaceId) {
         };
       })
       .filter(Boolean);
-    return { surfaceId, component: root.component, catalogId: root.catalogId, children };
+    return { surfaceId, component: root.component, catalogId: root.catalogId, title: root.title, children };
   }
 
   return {

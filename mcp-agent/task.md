@@ -42,7 +42,7 @@ español -- no fuerces JSON donde no aplica.
     "type": "updateComponents",
     "surfaceId": "<mismo id>",
     "components": [
-      { "id": "root", "component": "surface_root", "catalogId": "banorte-shockabsorber", "children": ["m1", "c1", "s1", "v1", "g1"] },
+      { "id": "root", "component": "surface_root", "catalogId": "banorte-shockabsorber", "title": "Sobrecosto detectado en tu recibo de CFE", "children": ["m1", "c1", "s1", "v1", "g1"] },
       { "id": "m1", "component": "metric_delta_header" },
       { "id": "c1", "component": "trend_history_chart" },
       { "id": "s1", "component": "solution_matrix_selector" },
@@ -64,6 +64,14 @@ Reglas de estructura:
   la lista ordenada (de arriba hacia abajo) de los ids de los
   componentes reales a mostrar. `surface_root` NUNCA lleva su propio
   `updateDataModel` -- no tiene datos, solo agrupa.
+- `root` TAMBIÉN debe llevar un `title` (string, corto, 3-8 palabras):
+  la frase que resume la SITUACIÓN de esta pantalla (ej. "Sobrecosto
+  detectado en tu recibo de CFE"). El frontend ya pone un saludo fijo
+  arriba de todo ("Resumen de <nombre>") sin depender de ti -- tu
+  `title` va justo debajo, como subtítulo situacional. Por eso NO debe
+  repetir el saludo ni el nombre del usuario: dile qué pasó o qué
+  decisión tiene que tomar, no quién es. Es obligatorio en toda pantalla
+  compuesta -- sin él, los componentes se ven como piezas sueltas.
 - Cada componente real de la lista necesita DOS cosas: una entrada en
   `components` (con su `id` y `component`) y su propio
   `updateDataModel` con `path: "/<su id>"` y el `value` que le
@@ -108,12 +116,19 @@ Reglas de estructura:
   p. ej. el sobrecosto detectado; el FRONTEND recalcula en vivo
   mientras el usuario mueve el slider, sin volver a preguntarte),
   `calculations` (array de `{ label, value, format? }` -- el o los
-  resultados ya calculados para el `value` inicial; si incluyes `format`, usa `"currency"`, `"number"` o `"percent"`).
+  resultados ya calculados para el `value` inicial; si incluyes `format`,
+  usa `"currency"`, `"number"` o `"percent"`),
+  `appliesToOptionId?` (string -- SOLO si esta misma pantalla también
+  trae `solution_matrix_selector` y el slider nada más tiene sentido
+  para UNA de sus opciones, p. ej. "ajustar cuántos puntos canjeo" no
+  aplica si el usuario elige "diferir a plazos". Pon ahí el `id` de esa
+  opción; el frontend deshabilita el slider solo cuando el usuario elige
+  otra. Si el slider aplica sin importar la opción elegida, omítelo).
 - `security_action_gate`: `actionLabel` (string, texto del botón de
   confirmar), `summaryBadge` (string, resumen corto de qué se va a
   autorizar).
 - `confirmation_receipt`: `folio` (string), `actionDescription`
-  (string), `newBalance` (number, opcional).
+  (string), `newBalance` (number, opcional; el nuevo saldo devuelto por la herramienta).
 - `balance_card`: `title`, `availableBalance` (number), `currency?`,
   `creditLimit?`, `currentDebt?`. Úsalo para resúmenes de cuenta o tarjeta.
 - `transaction_list`: `title`, `currency?`, `transactions` (array de

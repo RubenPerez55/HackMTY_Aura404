@@ -94,6 +94,13 @@ export const ComponentDataSchemas = {
         format: z.string().optional(),
       }),
     ),
+    // Si esta pantalla también trae un `solution_matrix_selector` y el
+    // slider SOLO tiene sentido para UNA de sus opciones (p. ej. ajustar
+    // puntos a canjear no aplica si el usuario elige "diferir a
+    // plazos"), pon aquí el `id` de esa opción. El frontend deshabilita
+    // el slider (con una nota) cuando el usuario selecciona otra opción,
+    // en vez de dejarlo ahí como si siguiera "vivo" sin estarlo.
+    appliesToOptionId: z.string().optional(),
   }),
   interactive_toggle_list: z.object({
     items: z.array(
@@ -266,6 +273,10 @@ const componentRefSchema = z.object({
   // Solo lo lleva el nodo raíz cuando agrupa varios componentes reales,
   // en el orden en que deben mostrarse (de arriba hacia abajo).
   children: z.array(z.string()).optional(),
+  // Solo lo lleva el nodo raíz de una pantalla COMPUESTA: título corto
+  // que resume la pantalla completa, para que el frontend le dé
+  // estructura visual en vez de mostrar los componentes sueltos.
+  title: z.string().optional(),
 });
 
 /** Los 3 tipos de mensaje A2UI que de verdad usamos (ver paso 2). */
