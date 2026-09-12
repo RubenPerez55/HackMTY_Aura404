@@ -42,6 +42,7 @@ const DEMO_TRIGGERS = {
     severity: "high",
     buildEvent: () => ({
       tipo: "SERVICE_SPIKE",
+      usuario: "Ruben Perez",
       servicio: "CFE",
       monto_actual: 2450,
       promedio_historico: 950,
@@ -58,6 +59,7 @@ const DEMO_TRIGGERS = {
     severity: "medium",
     buildEvent: () => ({
       tipo: "ANNUAL_FEE_IMMINENT",
+      usuario: "Ruben Perez",
       tarjeta: "Visa Platinum",
       monto_anualidad: 1500,
       dias_restantes: 4,
@@ -74,6 +76,7 @@ const DEMO_TRIGGERS = {
     severity: "critical",
     buildEvent: () => ({
       tipo: "LIQUIDITY_SHOCK",
+      usuario: "Hector Barrera",
       comercio: "Hospital Ángeles",
       categoria: "Salud",
       monto_compra: 18500,
@@ -111,13 +114,21 @@ export default function App() {
   // Evita solicitudes duplicadas durante el intervalo entre el clic y la
   // respuesta del backend (cuando todavía no existe un banner en `banners`).
   const triggeringKeysRef = useRef(new Set());
+  const selectedUserIdRef = useRef(selectedUserId);
 
-  const refreshUserData = async (userId = selectedUserId) => {
+  useEffect(() => {
+    selectedUserIdRef.current = selectedUserId;
+  }, [selectedUserId]);
+
+  const refreshUserData = async (userId = selectedUserIdRef.current) => {
     try {
       const list = await listUsers();
       setUsers(list);
       const targetUser = userId ?? list[0]?.usuario;
       if (targetUser) {
+        if (targetUser !== selectedUserIdRef.current) {
+          setSelectedUserId(targetUser);
+        }
         const txs = await listTransactions(targetUser, 5);
         setTransactions(txs);
       }
@@ -202,16 +213,16 @@ export default function App() {
     );
   };
 
-  const subscribe = (sessionId) => {
+  const subscribe = (sessionId, targetUserId) => {
     const close = subscribeToSession(sessionId, {
-      onTurnEnd: (data) => {
+      onTurnEnd: async (data) => {
         const surface = resolveTurnSurface(data.ui);
         // Si el agente emitió un comprobante de confirmación (acción ejecutada), actualizamos saldo y movimientos
         if (
           surface?.component === "confirmation_receipt" ||
           JSON.stringify(data.ui || "").includes("confirmation_receipt")
         ) {
-          refreshUserData();
+          await refreshUserData(targetUserId || selectedUserIdRef.current);
         }
         setBanners((prev) =>
           prev.map((b) => {
@@ -281,7 +292,7 @@ export default function App() {
           errorMessage: null,
         },
       ]);
-      subscribe(sessionId);
+      subscribe(sessionId, targetUserId);
     } catch (err) {
       setConnectionError(err.message);
     } finally {
@@ -295,11 +306,11 @@ export default function App() {
     setOpenBannerId(null);
   };
 
-  const finishBanner = (sessionId) => {
+  const finishBanner = async (sessionId, targetUserId) => {
     closeSubscription(sessionId);
     setBanners((prev) => prev.filter((b) => b.id !== sessionId));
     setOpenBannerId(null);
-    refreshUserData();
+    await refreshUserData(targetUserId || selectedUserIdRef.current);
     deleteSession(sessionId).catch(() => {
       // limpieza best-effort: si falla, no afecta la demo.
     });
@@ -309,16 +320,17 @@ export default function App() {
   // mostramos y, si el usuario interactúa, mandamos el siguiente turno.
   const handleSurfaceConfirm = (banner, payload) => {
     if (banner.surface?.component === "confirmation_receipt") {
-      finishBanner(banner.id);
+      finishBanner(banner.id, banner.userId);
       return;
     }
     patchBanner(banner.id, { status: "thinking" });
+    const userPrefix = banner.userId ? `Cliente: ${banner.userId}. ` : "";
     const codeSuffix = payload?.code ? ` Código de autorización: ${payload.code}.` : "";
     const actionSuffix = payload?.action ? ` Acción solicitada: ${payload.action}.` : "";
     const valuesSuffix = payload?.values && Object.keys(payload.values).length > 0
       ? ` Valores: ${JSON.stringify(payload.values)}.`
       : "";
-    const text = (payload?.actionSummary || "Confirmo, procede con la acción sugerida.")
+    const text = userPrefix + (payload?.actionSummary || "Confirmo, procede con la acción sugerida.")
       + actionSuffix + valuesSuffix + codeSuffix;
     sendMessage(banner.id, text).catch((err) =>
       patchBanner(banner.id, { status: "error", errorMessage: err.message }),

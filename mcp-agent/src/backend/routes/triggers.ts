@@ -25,6 +25,9 @@ export function registerTriggers(app: FastifyInstance, deps: RouteDeps): void {
     const payload = parsed.data;
     const event = (payload.event as Record<string, unknown>) ?? {};
     const userId = payload.userId;
+    if (userId) {
+      event.usuario = userId;
+    }
 
     // Si es un choque de liquidez (ej. gasto médico extraordinario), simular el débito real del movimiento
     if (event.tipo === "LIQUIDITY_SHOCK" && userId) {

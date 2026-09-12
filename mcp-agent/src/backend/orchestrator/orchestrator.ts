@@ -99,7 +99,7 @@ export class Orchestrator {
     const session =
       existingSession ?? this.createSession(userId, "Impacto financiero detectado");
 
-    const stimulus = payload.message?.trim() || buildImpactStimulus(payload.event);
+    const stimulus = payload.message?.trim() || buildImpactStimulus(payload.event, userId);
     const { queued } = this.sendMessage(session.id, stimulus);
 
     return { session, queued };
@@ -110,17 +110,18 @@ export class Orchestrator {
  * Traduce un evento crudo del motor de impacto a un estímulo en español.
  *
  * OJO: este texto es el primer mensaje que ve el agente para este flujo,
- * así que le marca el tono de la respuesta. Antes decía "inicia y
- * mantén una conversación" -- eso invitaba al modelo a contestar en
- * prosa (que es justo el fallback de solo-texto que NO queremos para
- * esta pantalla; ver A2UI en task.md). Ahora es explícito: reunir datos
+ * así que le marca el tono de la respuesta. Ahora es explícito: reunir datos
  * con las tools y responder con el JSON de componentes, no con texto.
  */
-function buildImpactStimulus(event: unknown): string {
+function buildImpactStimulus(event: unknown, userId?: string): string {
   const detail = event ? `: ${JSON.stringify(event)}` : "";
+  const clientDirective = userId
+    ? `El cliente bancario afectado es "${userId}". Usa siempre exactamente "${userId}" como argumento 'usuario' en todas tus herramientas bancarias MCP. `
+    : "";
   return (
-    "Se detectó un impacto financiero en la cuenta del usuario" +
+    `Se detectó un impacto financiero en la cuenta del usuario${userId ? ` "${userId}"` : ""}` +
     `${detail}. ` +
+    clientDirective +
     "Explora activamente la situación y evalúa alternativas viables usando las " +
     "herramientas bancarias MCP (calendario y subsistencia de nómina, simulaciones de " +
     "plazos/MSI, adelanto de nómina, puntos de fidelidad, etc.). Razona las mejores opciones " +
