@@ -57,9 +57,17 @@ export class SessionManager {
     const previous = this.queues.get(id) ?? Promise.resolve();
     const next = previous.then(() => task());
     this.queues.set(id, next);
-    void next.finally(() => {
-      if (this.queues.get(id) === next) this.queues.delete(id);
-    });
+    // El .catch(() => {}) es necesario: `.finally()` produce una promesa
+    // *nueva* que también rechaza si `next` rechaza, y esa promesa nunca
+    // tenía manejador propio -- Node la trataba como unhandledRejection y
+    // tumbaba TODO el proceso (todas las sesiones) cuando un turno fallaba
+    // (p. ej. el LLM caído). El error real de la tarea se sigue
+    // propagando normalmente por el `next` que se retorna abajo.
+    void next
+      .finally(() => {
+        if (this.queues.get(id) === next) this.queues.delete(id);
+      })
+      .catch(() => {});
     return next;
   }
 
