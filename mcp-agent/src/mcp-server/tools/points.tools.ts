@@ -96,9 +96,14 @@ export function registerPointsTools(server: McpServer, data: BankDataSource): vo
         transaction_id: z.union([z.number(), z.string()]).describe("ID del cargo o transacción del servicio"),
         points_to_redeem: z.number().positive().describe("Puntos autorizados a canjear"),
         token_2fa: z.string().describe("Código SoftToken de 6 dígitos"),
+        charge_amount: z
+          .number()
+          .optional()
+          .describe("Monto original del recibo del servicio en MXN (ej. 2450 para CFE)"),
+        service_name: z.string().optional().describe("Nombre del servicio a pagar (ej. CFE)"),
       },
     },
-    async ({ usuario, transaction_id, points_to_redeem, token_2fa }) => {
+    async ({ usuario, transaction_id, points_to_redeem, token_2fa, charge_amount, service_name }) => {
       const auth = verifyToken(token_2fa);
       if (!auth.valid) {
         return {
@@ -132,18 +137,34 @@ export function registerPointsTools(server: McpServer, data: BankDataSource): vo
         };
       }
 
+      const chargeAmount = charge_amount ?? 2450.0;
+      const serviceLabel = service_name || "CFE Suministro Eléctrico";
       const bonificacionMxn = Number((puntosRequeridos / PUNTOS_POR_PESO).toFixed(2));
+      const cargoNetoDebito = Number(Math.max(0, chargeAmount - bonificacionMxn).toFixed(2));
       const nuevoSaldoPuntos = puntosActuales - puntosRequeridos;
+      const saldoActual = user.saldo_ahorro ?? 0;
+      const nuevoSaldoCuenta = Number(Math.max(0, saldoActual - cargoNetoDebito).toFixed(2));
 
-      // Actualizar en base de datos real
-      data.updateUser(usuario, { puntos_fidelidad: nuevoSaldoPuntos });
+      // 1. Actualizar en base de datos real: saldo de débito y puntos de fidelidad
+      data.updateUser(usuario, {
+        saldo_ahorro: nuevoSaldoCuenta,
+        puntos_fidelidad: nuevoSaldoPuntos,
+      });
 
-      // Registrar movimiento de bonificación
+      // 2. Registrar cobro del servicio con la amortiguación de puntos aplicada
+      data.appendTransaction({
+        usuario,
+        categoria: "Servicios",
+        monto: cargoNetoDebito,
+        descripcion: `Pago ${serviceLabel} (neto tras amortiguar $${bonificacionMxn.toFixed(2)} MXN con puntos)`,
+      });
+
+      // 3. Registrar movimiento de bonificación de lealtad
       data.appendTransaction({
         usuario,
         categoria: "Bonificación Lealtad",
         monto: bonificacionMxn,
-        descripcion: `Bonificación de $${bonificacionMxn.toFixed(2)} MXN por canje de ${puntosRequeridos} puntos Banorte`,
+        descripcion: `Bonificación Lealtad Banorte (+${puntosRequeridos} pts canjeados)`,
       });
 
       const folio = `FOL-PTS-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -159,9 +180,12 @@ export function registerPointsTools(server: McpServer, data: BankDataSource): vo
               transaccion_asociada: transaction_id,
               puntos_canjeados: puntosRequeridos,
               bonificacion_aplicada_mxn: bonificacionMxn,
+              cargo_neto_servicio_mxn: cargoNetoDebito,
+              nuevo_saldo_disponible: nuevoSaldoCuenta,
+              nuevo_saldo_cuenta: nuevoSaldoCuenta,
               nuevo_saldo_puntos: nuevoSaldoPuntos,
               fecha_autorizacion: new Date().toISOString(),
-              comprobante: `Operación autorizada con SoftToken. Se bonificaron $${bonificacionMxn.toFixed(2)} MXN a tu favor. Folio: ${folio}.`,
+              comprobante: `Operación autorizada con SoftToken. Se aplicó el pago de ${serviceLabel} por un neto de $${cargoNetoDebito.toLocaleString()} MXN (con bonificación de $${bonificacionMxn.toFixed(2)} MXN por ${puntosRequeridos} puntos). Tu nuevo saldo es $${nuevoSaldoCuenta.toLocaleString()} MXN. Folio: ${folio}.`,
             }),
           },
         ],

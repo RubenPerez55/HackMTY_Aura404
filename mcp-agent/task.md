@@ -113,7 +113,7 @@ Reglas de estructura:
   confirmar), `summaryBadge` (string, resumen corto de qué se va a
   autorizar).
 - `confirmation_receipt`: `folio` (string), `actionDescription`
-  (string), `newBalance` (number, opcional).
+  (string), `newBalance` (number, el nuevo saldo disponible de la cuenta devuelto por la herramienta de ejecución).
 
 Reglas generales:
 

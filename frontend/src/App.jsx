@@ -425,26 +425,58 @@ export default function App() {
             {transactions.length === 0 && (
               <p className="text-xs text-gray-400">Sin movimientos recientes.</p>
             )}
-            {transactions.map((tx) => (
-              <div key={tx.id_transaccion} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
-                    <i className="fa-solid fa-cart-shopping text-sm" />
+            {transactions.map((tx) => {
+              const catLower = (tx.categoria || "").toLowerCase();
+              const descLower = (tx.descripcion || "").toLowerCase();
+              const isCredit =
+                catLower.includes("bonificaci") ||
+                catLower.includes("abono") ||
+                catLower.includes("adelanto") ||
+                catLower.includes("depósito") ||
+                catLower.includes("deposito") ||
+                descLower.includes("bonificaci");
+
+              const icon = isCredit
+                ? "fa-arrow-down text-emerald-600"
+                : tx.categoria === "Servicios"
+                ? "fa-bolt text-yellow-600"
+                : tx.categoria === "Comida"
+                ? "fa-utensils text-orange-500"
+                : tx.categoria === "Transporte"
+                ? "fa-car text-blue-500"
+                : "fa-bag-shopping text-gray-500";
+
+              const iconBg = isCredit
+                ? "bg-emerald-50"
+                : tx.categoria === "Servicios"
+                ? "bg-yellow-50"
+                : tx.categoria === "Comida"
+                ? "bg-orange-50"
+                : tx.categoria === "Transporte"
+                ? "bg-blue-50"
+                : "bg-gray-100";
+
+              return (
+                <div key={tx.id_transaccion} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-full ${iconBg} flex items-center justify-center`}>
+                      <i className={`fa-solid ${icon} text-sm`} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">
+                        {tx.categoria}
+                      </p>
+                      <p className="text-[10px] text-gray-400">
+                        {new Date(tx.fecha).toLocaleDateString("es-MX")}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">
-                      {tx.categoria}
-                    </p>
-                    <p className="text-[10px] text-gray-400">
-                      {new Date(tx.fecha).toLocaleDateString("es-MX")}
-                    </p>
-                  </div>
+                  <span className={`text-sm font-bold ${isCredit ? "text-emerald-600" : "text-gray-800"}`}>
+                    {isCredit ? "+" : "-"}${Number(tx.monto ?? 0).toLocaleString()}
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-gray-800">
-                  -${Number(tx.monto ?? 0).toLocaleString()}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
