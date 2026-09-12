@@ -121,12 +121,12 @@ function buildImpactStimulus(event: unknown): string {
   return (
     "Se detectó un impacto financiero en la cuenta del usuario" +
     `${detail}. ` +
-    "Usa las herramientas bancarias disponibles para entender a fondo la " +
-    "situación (saldo, puntos, tarjetas, historial relevante). Con esos " +
-    "datos, arma la pantalla de solución combinando los componentes de tu " +
-    "catálogo (ver 'Generación de interfaz (A2UI)' en tus instrucciones). " +
-    "Tu respuesta final para este estímulo DEBE ser el JSON de " +
-    "componentes -- no le respondas al usuario con una explicación en " +
-    "texto plano."
+    "Explora activamente la situación y evalúa alternativas viables usando las " +
+    "herramientas bancarias MCP (calendario y subsistencia de nómina, simulaciones de " +
+    "plazos/MSI, adelanto de nómina, puntos de fidelidad, etc.). Razona las mejores opciones " +
+    "financieras sin redundancias y compone la pantalla de solución combinando los componentes " +
+    "de tu catálogo A2UI (ver 'Generación de interfaz (A2UI)' en tus instrucciones). " +
+    "Tu respuesta final para este estímulo DEBE ser el arreglo JSON de " +
+    "componentes -- no le respondas al usuario con una explicación en texto plano."
   );
 }

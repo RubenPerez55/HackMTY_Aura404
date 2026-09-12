@@ -4,7 +4,7 @@ import type { BankDataSource } from "../../data/data-source.js";
 import { verifyToken } from "./security.tools.js";
 
 const MIN_INSTALLMENT_AMOUNT = 500.0;
-const VALID_MONTHS = [3, 6, 12] as const;
+const VALID_MONTHS = [3, 6, 9, 12] as const;
 
 export function registerInstallmentsTools(server: McpServer, data: BankDataSource): void {
   // RF-03.3, E-03: Simulación interactiva de diferimiento
@@ -12,16 +12,16 @@ export function registerInstallmentsTools(server: McpServer, data: BankDataSourc
     "simulate_installments",
     {
       description:
-        "Simula el diferimiento de una compra a plazos (3, 6 o 12 meses) para estabilizar la liquidez del usuario, calculando la cuota mensual fija y la liquidez inmediata restaurada.",
+        "Simula el diferimiento de una compra a plazos (3, 6, 9 o 12 meses) para estabilizar la liquidez del usuario, calculando la cuota mensual fija y la liquidez inmediata restaurada.",
       inputSchema: {
         usuario: z.string().describe("Nombre del usuario bancario"),
         purchase_amount: z.number().positive().describe("Monto original de la compra a diferir en MXN"),
         months: z
           .number()
           .refine((m) => (VALID_MONTHS as readonly number[]).includes(m), {
-            message: "Los plazos permitidos son 3, 6 o 12 meses.",
+            message: "Los plazos permitidos son 3, 6, 9 o 12 meses.",
           })
-          .describe("Plazo seleccionado en meses (3, 6 o 12)"),
+          .describe("Plazo seleccionado en meses (3, 6, 9 o 12)"),
       },
     },
     async ({ usuario, purchase_amount, months }) => {
@@ -109,7 +109,7 @@ export function registerInstallmentsTools(server: McpServer, data: BankDataSourc
 
       const finalAmount = purchase_amount ?? monto ?? 18500;
       const parsedMonths = Number(months ?? plazo_meses ?? 6);
-      const finalMonths = ([3, 6, 12] as const).includes(parsedMonths as 3 | 6 | 12) ? parsedMonths : 6;
+      const finalMonths = ([3, 6, 9, 12] as const).includes(parsedMonths as 3 | 6 | 9 | 12) ? parsedMonths : 6;
       const finalTxId = transaction_id ?? 101;
 
       if (finalAmount < MIN_INSTALLMENT_AMOUNT) {

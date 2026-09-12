@@ -6,8 +6,25 @@ const ICONS = {
   points: "fa-coins",
   installments: "fa-calendar-days",
   domiciliation: "fa-repeat",
+  payroll: "fa-money-bill-wave",
+  advance: "fa-hand-holding-dollar",
+  cash: "fa-wallet",
   default: "fa-circle-check",
 };
+
+function getOptionIcon(option) {
+  if (option.iconName && ICONS[option.iconName]) return ICONS[option.iconName];
+  const text = `${option.id || ""} ${option.title || ""}`.toLowerCase();
+  if (text.includes("nomina") || text.includes("nómina") || text.includes("advance") || text.includes("adelanto")) {
+    return ICONS.payroll;
+  }
+  if (text.includes("punto") || text.includes("point")) return ICONS.points;
+  if (text.includes("plazo") || text.includes("mes") || text.includes("diferir") || text.includes("installment")) {
+    return ICONS.installments;
+  }
+  if (text.includes("domicili")) return ICONS.domiciliation;
+  return ICONS.default;
+}
 
 export default function SolutionMatrixSelector({ data, selectedId, onSelect }) {
   const current = selectedId ?? data.selectedId;
@@ -35,7 +52,7 @@ export default function SolutionMatrixSelector({ data, selectedId, onSelect }) {
                 isSelected ? "bg-[#EB0029] text-white" : "bg-gray-100 text-gray-500"
               }`}
             >
-              <i className={`fa-solid ${ICONS[option.iconName] || ICONS.default}`} />
+              <i className={`fa-solid ${getOptionIcon(option)}`} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
