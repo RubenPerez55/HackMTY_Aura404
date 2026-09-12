@@ -94,6 +94,13 @@ export const ComponentDataSchemas = {
         format: z.enum(["currency", "number", "percent"]).optional(),
       }),
     ),
+    // Si esta pantalla también trae un `solution_matrix_selector` y el
+    // slider SOLO tiene sentido para UNA de sus opciones (p. ej. ajustar
+    // puntos a canjear no aplica si el usuario elige "diferir a
+    // plazos"), pon aquí el `id` de esa opción. El frontend deshabilita
+    // el slider (con una nota) cuando el usuario selecciona otra opción,
+    // en vez de dejarlo ahí como si siguiera "vivo" sin estarlo.
+    appliesToOptionId: z.string().optional(),
   }),
   interactive_toggle_list: z.object({
     items: z.array(

@@ -15,11 +15,18 @@ import ComposedScreen from "./ComposedScreen.jsx";
  * una acción de "cancelar" propia (legacy: two_factor_modal). Los demás
  * simplemente lo ignoran como prop extra.
  */
-export default function A2uiSurfaceView({ surface, onConfirm, onCancel }) {
+export default function A2uiSurfaceView({ surface, userName, onConfirm, onCancel }) {
   if (!surface) return null;
 
   if (surface.children) {
-    return <ComposedScreen title={surface.title} children={surface.children} onConfirm={onConfirm} />;
+    return (
+      <ComposedScreen
+        userName={userName}
+        title={surface.title}
+        children={surface.children}
+        onConfirm={onConfirm}
+      />
+    );
   }
 
   const Component = resolveComponent(surface.component);

@@ -412,6 +412,7 @@ export default function App() {
           <div>
             <A2uiSurfaceView
               surface={openBanner.surface}
+              userName={openBanner.userId}
               onConfirm={(payload) => handleSurfaceConfirm(openBanner, payload)}
               onCancel={closeModal}
             />

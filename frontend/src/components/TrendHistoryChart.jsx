@@ -1,8 +1,28 @@
 // Gráfica de barras (histórico de consumo, o proyección pre/post-acción).
 // Hecha a mano con divs (sin librería de charts) -- barra anómala en
 // rojo, barra proyectada con borde punteado, el resto en gris.
+//
+// El "motivo de la gráfica" (por qué se le muestra al usuario) se
+// calcula 100% en el cliente a partir de `bars` -- no depende de que el
+// LLM mande un texto aparte (que a veces olvida): si hay una barra
+// marcada `isAnomaly`, se compara contra la primera barra "normal" y se
+// arma una leyenda tipo "Este mes: $X vs. tu promedio de $Y -- +Z%".
+function buildCaption(bars, currency) {
+  const anomaly = bars.find((b) => b.isAnomaly);
+  const baseline = bars.find((b) => !b.isAnomaly && !b.isProjected);
+  if (!anomaly || !baseline || baseline.amount <= 0) return null;
+  const pct = Math.round(((anomaly.amount - baseline.amount) / baseline.amount) * 100);
+  const sign = pct >= 0 ? "+" : "";
+  return (
+    `${anomaly.label}: ${currency}${Math.round(anomaly.amount).toLocaleString()} vs. ` +
+    `${baseline.label.toLowerCase()}: ${currency}${Math.round(baseline.amount).toLocaleString()} ` +
+    `(${sign}${pct}%).`
+  );
+}
+
 export default function TrendHistoryChart({ data }) {
   const max = Math.max(...data.bars.map((b) => b.amount), 1);
+  const caption = buildCaption(data.bars, data.currency);
 
   return (
     <div className="bg-gray-50 rounded-2xl p-4">
@@ -31,6 +51,7 @@ export default function TrendHistoryChart({ data }) {
           );
         })}
       </div>
+      {caption && <p className="text-[11px] text-gray-500 mt-3 text-center">{caption}</p>}
     </div>
   );
 }
