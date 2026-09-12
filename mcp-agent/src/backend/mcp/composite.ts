@@ -44,18 +44,24 @@ export class CompositeMcpClient implements AgentMcpClient {
   }
 
   private resolveServer(name: string): { serverId: string; toolName: string } {
-    const dot = name.indexOf(".");
-    if (dot > 0) {
-      const prefix = name.slice(0, dot);
-      if (this.serverIds.has(prefix)) return { serverId: prefix, toolName: name.slice(dot + 1) };
+    const sep = name.includes("__") ? "__" : name.includes(".") ? "." : null;
+    if (sep) {
+      const idx = name.indexOf(sep);
+      const prefix = name.slice(0, idx);
+      if (this.serverIds.has(prefix)) return { serverId: prefix, toolName: name.slice(idx + sep.length) };
     }
     if (this.servers.length === 1) return { serverId: this.servers[0].serverId, toolName: name };
+    for (const s of this.servers) {
+      if (name.startsWith(s.serverId)) {
+        return { serverId: s.serverId, toolName: name.slice(s.serverId.length).replace(/^[_.-]+/, "") };
+      }
+    }
     throw new Error(
-      `Nombre de tool sin prefijo de servidor: "${name}". Usa "<serverId>.<toolName>".`,
+      `Nombre de tool sin prefijo de servidor: "${name}". Usa "<serverId>__<toolName>".`,
     );
   }
 }
 
 function qualify(serverId: string, toolName: string): string {
-  return `${serverId}.${toolName}`;
+  return `${serverId}__${toolName}`;
 }
