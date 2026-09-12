@@ -10,6 +10,7 @@
     "build:all": "npm --prefix mcp-agent run build && npm --prefix frontend run build",
     "probe": "npm --prefix mcp-agent run probe --",
     "smoke:banking": "npm --prefix mcp-agent run smoke:banking",
-    "smoke:backend": "npm --prefix mcp-agent run smoke:backend"
+    "smoke:backend": "npm --prefix mcp-agent run smoke:backend",
+    "test:flow": "npm --prefix mcp-agent run test:flow --"
   }
 }

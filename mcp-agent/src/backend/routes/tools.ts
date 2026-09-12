@@ -13,7 +13,7 @@ export function registerTools(app: FastifyInstance, deps: RouteDeps): void {
     for (const { serverId, client } of deps.registry.entries()) {
       const tools = (await client.listToolsForLLM()).map((tool) => ({
         ...tool,
-        name: `${serverId}.${tool.name}`,
+        name: `${serverId}__${tool.name}`,
       }));
       servers.push({ serverId, tools });
     }
@@ -25,7 +25,7 @@ export function registerTools(app: FastifyInstance, deps: RouteDeps): void {
     const tools: LlmTool[] = [];
     for (const { serverId, client } of deps.registry.entries()) {
       const sTools = await client.listToolsForLLM();
-      tools.push(...sTools.map((t) => ({ ...t, name: `${serverId}.${t.name}` })));
+      tools.push(...sTools.map((t) => ({ ...t, name: `${serverId}__${t.name}` })));
     }
     return reply.send({
       status: "ok",
