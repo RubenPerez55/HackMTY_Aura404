@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "./components/Modal.jsx";
 import AlertBanner from "./components/AlertBanner.jsx";
 import FormattedChatMessage from "./components/FormattedChatMessage.jsx";
@@ -119,7 +119,18 @@ export default function App() {
 
   useEffect(() => {
     selectedUserIdRef.current = selectedUserId;
+    if (selectedUserId) {
+      listTransactions(selectedUserId, 5)
+        .then((txs) => setTransactions(txs))
+        .catch((err) => console.warn("Error al cargar transacciones:", err));
+    }
   }, [selectedUserId]);
+
+  const handleSelectUser = async (newUserId) => {
+    setSelectedUserId(newUserId);
+    setOpenBannerId(null);
+    await refreshUserData(newUserId);
+  };
 
   const refreshUserData = async (userId = selectedUserIdRef.current) => {
     try {
@@ -142,6 +153,12 @@ export default function App() {
     try {
       setResettingData(true);
       setResetSuccess(false);
+      // Cerrar suscripciones SSE y limpiar banners activos
+      Object.values(unsubscribersRef.current).forEach((close) => close?.());
+      unsubscribersRef.current = {};
+      setBanners([]);
+      setOpenBannerId(null);
+
       const res = await resetData();
       if (res.users) {
         setUsers(res.users);
@@ -267,7 +284,9 @@ export default function App() {
       await refreshUserData(def.recommendedUser);
     }
 
-    const alreadyActive = banners.some((banner) => banner.triggerKey === key);
+    const alreadyActive = banners.some(
+      (banner) => banner.triggerKey === key && banner.userId === targetUserId
+    );
     if (alreadyActive || triggeringKeysRef.current.has(key)) return;
     triggeringKeysRef.current.add(key);
     try {
@@ -301,7 +320,14 @@ export default function App() {
     }
   };
 
-  const openBanner = openBannerId ? banners.find((b) => b.id === openBannerId) : null;
+  // Solo mostrar banners correspondientes al usuario seleccionado en pantalla
+  const userBanners = useMemo(() => {
+    return banners.filter((b) => b.userId === selectedUserId);
+  }, [banners, selectedUserId]);
+
+  const openBanner = openBannerId
+    ? userBanners.find((b) => b.id === openBannerId) ?? null
+    : null;
 
   const closeModal = () => {
     setOpenBannerId(null);
@@ -372,7 +398,10 @@ export default function App() {
         </p>
         <div className="flex flex-col gap-2.5">
           {Object.entries(DEMO_TRIGGERS).map(([key, def]) => {
-            const isActive = banners.some((banner) => banner.triggerKey === key);
+            const targetUser = def.recommendedUser || selectedUserId;
+            const isActive = banners.some(
+              (banner) => banner.triggerKey === key && banner.userId === targetUser
+            );
             return (
               <button
                 key={key}
@@ -445,8 +474,8 @@ export default function App() {
               {users.length > 1 ? (
                 <select
                   value={selectedUserId ?? ""}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="bg-transparent text-xl font-bold text-white -ml-1 outline-none"
+                  onChange={(e) => handleSelectUser(e.target.value)}
+                  className="bg-transparent text-xl font-bold text-white -ml-1 outline-none cursor-pointer"
                 >
                   {users.map((u) => (
                     <option key={u.usuario} value={u.usuario} className="text-gray-900">
@@ -460,9 +489,9 @@ export default function App() {
             </div>
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative">
               <i className="fa-regular fa-bell text-lg" />
-              {banners.length > 0 && (
+              {userBanners.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-[#EB0029] text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {banners.length}
+                  {userBanners.length}
                 </span>
               )}
             </div>
@@ -495,7 +524,7 @@ export default function App() {
 
         {/* Zona de alertas (hiperpersonalización) + movimientos */}
         <section className="px-5 py-2 flex-1 overflow-y-auto">
-          {banners.map((banner) => (
+          {userBanners.map((banner) => (
             <AlertBanner
               key={banner.id}
               trigger={{
