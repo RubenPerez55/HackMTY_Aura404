@@ -140,11 +140,12 @@ export function registerDomiciliationTools(server: McpServer, data: BankDataSour
         "Formaliza la domiciliación de los servicios seleccionados y cancela el cobro de la anualidad. Requiere autorización SoftToken de 6 dígitos.",
       inputSchema: {
         usuario: z.string().describe("Nombre del usuario"),
-        services: z.array(z.string()).min(1).describe("Servicios a domiciliar"),
+        services: z.array(z.string()).optional().describe("Servicios a domiciliar (ej. ['CFE Suministro Eléctrico', 'Telmex Infinitum'])"),
+        servicios: z.array(z.string()).optional().describe("Alias alternativo en español para servicios a domiciliar"),
         token_2fa: z.string().describe("Código SoftToken de 6 dígitos"),
       },
     },
-    async ({ usuario, services, token_2fa }) => {
+    async ({ usuario, services, servicios, token_2fa }) => {
       const auth = verifyToken(token_2fa);
       if (!auth.valid) {
         return {
@@ -152,6 +153,13 @@ export function registerDomiciliationTools(server: McpServer, data: BankDataSour
           content: [{ type: "text", text: JSON.stringify({ success: false, error: auth.error }) }],
         };
       }
+
+      const finalServices =
+        services && services.length > 0
+          ? services
+          : servicios && servicios.length > 0
+          ? servicios
+          : ["CFE Suministro Eléctrico", "Telmex Infinitum"];
 
       const user = data.getUser(usuario);
       if (!user) {
@@ -162,7 +170,7 @@ export function registerDomiciliationTools(server: McpServer, data: BankDataSour
       }
 
       // Registrar domiciliaciones activas
-      const activas = data.recordDomiciliations(usuario, services);
+      const activas = data.recordDomiciliations(usuario, finalServices);
 
       // Registrar folio y comprobante de exención
       const folio = `FOL-DOM-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -175,7 +183,7 @@ export function registerDomiciliationTools(server: McpServer, data: BankDataSour
               success: true,
               folio_bancario: folio,
               usuario,
-              servicios_domiciliados: services,
+              servicios_domiciliados: finalServices,
               total_domiciliaciones_vigentes: activas,
               anualidad_condonada_mxn: DEFAULT_ANNUAL_FEE,
               cargo_anualidad_final_mxn: 0.0,

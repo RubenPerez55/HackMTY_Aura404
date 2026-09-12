@@ -22,6 +22,7 @@ function formatValue(v, format) {
 export default function DynamicValueSlider({ data, onChange, inactiveLabel }) {
   const [value, setValue] = useState(data.value);
   const isPoints = /punto|pts/i.test(data.unitLabel || "");
+  const isMonths = /mes|plazo/i.test(data.unitLabel || "");
 
   if (inactiveLabel) {
     return (
@@ -57,6 +58,25 @@ export default function DynamicValueSlider({ data, onChange, inactiveLabel }) {
         return Math.max(0, basis - bonificacion);
       }
     }
+
+    if (isMonths) {
+      const months = value || 1;
+      const basis = typeof data.basis === "number" ? data.basis : 18500;
+      const label = (calc.label || "").toLowerCase();
+      if (label.includes("cuota") || label.includes("mensual") || label.includes("pago")) {
+        return Number((basis / months).toFixed(2));
+      }
+      if (label.includes("liquidez") || label.includes("recuperad") || label.includes("restaurad") || label.includes("inmediat")) {
+        return basis;
+      }
+      if (label.includes("plazo") || label.includes("mes")) {
+        return months;
+      }
+      if (label.includes("total")) {
+        return basis;
+      }
+    }
+
     if (i === 0 && typeof data.basis === "number" && (calc.label || "").toLowerCase().includes("cubrir")) {
       return Math.max(0, data.basis - value);
     }
@@ -80,6 +100,8 @@ export default function DynamicValueSlider({ data, onChange, inactiveLabel }) {
       <p className="text-xs text-gray-500 mb-3">
         {isPoints
           ? `${Math.round(value).toLocaleString()} pts de ${Math.round(data.max).toLocaleString()} pts disponibles`
+          : isMonths
+          ? `${value} meses (plazo de ${data.min} a ${data.max} meses)`
           : `${formatValue(value, "currency")} de ${formatValue(data.max, "currency")}`}
       </p>
 

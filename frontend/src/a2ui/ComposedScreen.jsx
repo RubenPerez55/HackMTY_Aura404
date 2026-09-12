@@ -28,9 +28,13 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
   const solutionChild = children.find((c) => c.component === "solution_matrix_selector");
   const sliderChild = children.find((c) => c.component === "dynamic_value_slider");
   const securityChild = children.find((c) => c.component === "security_action_gate");
+  const toggleChild = children.find((c) => c.component === "interactive_toggle_list");
 
   const [selectedId, setSelectedId] = useState(solutionChild?.data?.selectedId);
   const [sliderValue, setSliderValue] = useState(sliderChild?.data?.value);
+  const [selectedServices, setSelectedServices] = useState(() => {
+    return toggleChild?.data?.items?.filter((i) => i.isSelected) || [];
+  });
   const [inputValues, setInputValues] = useState({});
 
   const handleValueChange = (name, value) => {
@@ -64,8 +68,17 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
     if (sliderChild && sliderIsActive && sliderValue != null) {
       parts.push(`${sliderChild.data.unitLabel}: ${sliderValue}.`);
     }
+    if (selectedServices && selectedServices.length > 0) {
+      const names = selectedServices.map((s) => s.name || s.id);
+      parts.push(`Servicios confirmados para domiciliar: ${names.join(", ")}.`);
+    }
+    const combinedValues = {
+      ...inputValues,
+      ...(selectedServices.length > 0 ? { servicios_domiciliar: selectedServices.map((s) => s.name || s.id) } : {}),
+      ...(sliderChild && sliderIsActive && sliderValue != null ? { valor_slider: sliderValue } : {}),
+    };
     const actionSummary = parts.join(" ") || "Confirmo la operación sugerida.";
-    await onConfirm?.({ actionSummary, code: token, values: inputValues });
+    await onConfirm?.({ actionSummary, code: token, values: combinedValues });
   };
 
   return (
@@ -85,6 +98,15 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
               data={child.data}
               selectedId={selectedId}
               onSelect={setSelectedId}
+            />
+          );
+        }
+        if (child.component === "interactive_toggle_list") {
+          return (
+            <Component
+              key={child.id}
+              data={child.data}
+              onChange={setSelectedServices}
             />
           );
         }

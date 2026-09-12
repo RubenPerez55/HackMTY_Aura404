@@ -34,7 +34,9 @@ import {
 // motor. Cuando exista de verdad, esto se sustituye por su webhook.
 const DEMO_TRIGGERS = {
   cfe_spike: {
-    label: "Simular estímulo: recibo de CFE alto",
+    label: "Recibo de CFE alto",
+    scenarioBadge: "Escenario 1 · RF-01.1",
+    recommendedUser: "Ruben Perez",
     bannerTitle: "Tu recibo de CFE llegó más alto de lo normal",
     bannerSubtitle: "Detectamos un sobrecosto vs. tu promedio habitual",
     severity: "high",
@@ -47,8 +49,38 @@ const DEMO_TRIGGERS = {
       motivo: "temporada de calor",
     }),
   },
-  // El caso de "anualidad de tarjeta" es otra demo aparte, todavía sin
-  // definir -- cuando se defina, solo hay que agregar otra entrada aquí.
+  annual_fee: {
+    label: "Anualidad de Tarjeta por vencer",
+    scenarioBadge: "Escenario 2 · RF-01.2",
+    recommendedUser: "Ruben Perez",
+    bannerTitle: "Cobro de anualidad próximo a vencer",
+    bannerSubtitle: "Evita el cargo de $1,500 MXN en tu tarjeta Visa Platinum",
+    severity: "medium",
+    buildEvent: () => ({
+      tipo: "ANNUAL_FEE_IMMINENT",
+      tarjeta: "Visa Platinum",
+      monto_anualidad: 1500,
+      dias_restantes: 4,
+      fecha_cobro: "2026-09-16",
+      motivo: "renovación anual programada",
+    }),
+  },
+  liquidity_shock: {
+    label: "Golpe de Liquidez (Urgencia Médica)",
+    scenarioBadge: "Escenario 3 · RF-01.3",
+    recommendedUser: "Hector Barrera",
+    bannerTitle: "Gasto extraordinario detectado",
+    bannerSubtitle: "Compra de $18,500 MXN en Hospital Ángeles reduce tu liquidez",
+    severity: "critical",
+    buildEvent: () => ({
+      tipo: "LIQUIDITY_SHOCK",
+      comercio: "Hospital Ángeles",
+      categoria: "Salud",
+      monto_compra: 18500,
+      transaction_id: 101,
+      motivo: "emergencia médica",
+    }),
+  },
 };
 
 /** Convierte el `ui` (mensajes A2UI) de UN turno en la surface a mostrar. */
@@ -213,13 +245,22 @@ export default function App() {
 
   const fireDemoTrigger = async (key) => {
     const def = DEMO_TRIGGERS[key];
-    if (!def || !selectedUserId) return;
+    if (!def) return;
+    const targetUserId = def.recommendedUser || selectedUserId;
+    if (!targetUserId) return;
+
+    // Cambiar automáticamente al usuario relevante del escenario para que la posición bancaria coincida con spec.md
+    if (def.recommendedUser && selectedUserId !== def.recommendedUser) {
+      setSelectedUserId(def.recommendedUser);
+      await refreshUserData(def.recommendedUser);
+    }
+
     const alreadyActive = banners.some((banner) => banner.triggerKey === key);
     if (alreadyActive || triggeringKeysRef.current.has(key)) return;
     triggeringKeysRef.current.add(key);
     try {
       const { sessionId } = await triggerImpact({
-        userId: selectedUserId,
+        userId: targetUserId,
         event: def.buildEvent(),
       });
       setBanners((prev) => [
@@ -227,7 +268,7 @@ export default function App() {
         {
           id: sessionId,
           triggerKey: key,
-          userId: selectedUserId,
+          userId: targetUserId,
           title: def.bannerTitle,
           subtitle: def.bannerSubtitle,
           severity: def.severity,
@@ -313,21 +354,39 @@ export default function App() {
           Simula los estímulos que en producción mandaría el motor de
           detección real.
         </p>
-        <div className="flex flex-col gap-2">
-          {Object.entries(DEMO_TRIGGERS).map(([key, def]) => (
-            <button
-              key={key}
-              onClick={() => fireDemoTrigger(key)}
-              disabled={
-                !selectedUserId ||
-                triggeringKeysRef.current.has(key) ||
-                banners.some((banner) => banner.triggerKey === key)
-              }
-              className="text-left text-xs font-semibold bg-gray-900 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2 rounded-xl"
-            >
-              {def.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-2.5">
+          {Object.entries(DEMO_TRIGGERS).map(([key, def]) => {
+            const isActive = banners.some((banner) => banner.triggerKey === key);
+            return (
+              <button
+                key={key}
+                onClick={() => fireDemoTrigger(key)}
+                disabled={
+                  triggeringKeysRef.current.has(key) || isActive
+                }
+                className="text-left text-xs bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-all shadow-sm group"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold tracking-wider text-red-400 uppercase">
+                    {def.scenarioBadge}
+                  </span>
+                  {isActive && (
+                    <span className="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-bold">
+                      Activo
+                    </span>
+                  )}
+                </div>
+                <p className="font-semibold text-gray-100 group-hover:text-white leading-tight">
+                  {def.label}
+                </p>
+                {def.recommendedUser && (
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Usuario: <span className="text-gray-300 font-medium">{def.recommendedUser}</span>
+                  </p>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         <div className="mt-4 pt-3 border-t border-gray-100">

@@ -84,17 +84,21 @@ export function registerInstallmentsTools(server: McpServer, data: BankDataSourc
         "Aplica el diferimiento de la compra, reinyecta la liquidez a la cuenta del usuario y calendariza las cuotas. Requiere SoftToken de 6 dígitos.",
       inputSchema: {
         usuario: z.string().describe("Nombre del usuario"),
-        transaction_id: z.union([z.number(), z.string()]).describe("ID de la transacción extraordinaria"),
-        purchase_amount: z.number().positive().describe("Monto a diferir"),
+        transaction_id: z.union([z.number(), z.string()]).optional().describe("ID de la transacción extraordinaria (default: 101)"),
+        purchase_amount: z.number().positive().optional().describe("Monto a diferir en MXN"),
+        monto: z.number().positive().optional().describe("Alias en español para monto a diferir"),
         months: z
-          .number()
-          .refine((m) => (VALID_MONTHS as readonly number[]).includes(m), {
-            message: "Los plazos permitidos son 3, 6 o 12 meses.",
-          }),
+          .union([z.number(), z.string().transform((v) => Number(v))])
+          .optional()
+          .describe("Plazos permitidos: 3, 6 o 12 meses"),
+        plazo_meses: z
+          .union([z.number(), z.string().transform((v) => Number(v))])
+          .optional()
+          .describe("Alias en español para plazo en meses"),
         token_2fa: z.string().describe("Código SoftToken de 6 dígitos"),
       },
     },
-    async ({ usuario, transaction_id, purchase_amount, months, token_2fa }) => {
+    async ({ usuario, transaction_id, purchase_amount, monto, months, plazo_meses, token_2fa }) => {
       const auth = verifyToken(token_2fa);
       if (!auth.valid) {
         return {
@@ -103,7 +107,12 @@ export function registerInstallmentsTools(server: McpServer, data: BankDataSourc
         };
       }
 
-      if (purchase_amount < MIN_INSTALLMENT_AMOUNT) {
+      const finalAmount = purchase_amount ?? monto ?? 18500;
+      const parsedMonths = Number(months ?? plazo_meses ?? 6);
+      const finalMonths = ([3, 6, 12] as const).includes(parsedMonths as 3 | 6 | 12) ? parsedMonths : 6;
+      const finalTxId = transaction_id ?? 101;
+
+      if (finalAmount < MIN_INSTALLMENT_AMOUNT) {
         return {
           isError: true,
           content: [
@@ -128,9 +137,9 @@ export function registerInstallmentsTools(server: McpServer, data: BankDataSourc
 
       const saldoActual = user.saldo_ahorro ?? 0;
       const deudaActual = user.deuda_total ?? 0;
-      const nuevoSaldo = Number((saldoActual + purchase_amount).toFixed(2));
-      const nuevaDeuda = Number((deudaActual + purchase_amount).toFixed(2));
-      const cuotaMensual = Number((purchase_amount / months).toFixed(2));
+      const nuevoSaldo = Number((saldoActual + finalAmount).toFixed(2));
+      const nuevaDeuda = Number((deudaActual + finalAmount).toFixed(2));
+      const cuotaMensual = Number((finalAmount / finalMonths).toFixed(2));
 
       // Actualizar en base de datos compartida: reintegro de liquidez en saldo_ahorro y registro en deuda_total
       data.updateUser(usuario, {
@@ -142,8 +151,8 @@ export function registerInstallmentsTools(server: McpServer, data: BankDataSourc
       data.appendTransaction({
         usuario,
         categoria: "Abono Liquidez",
-        monto: purchase_amount,
-        descripcion: `Reintegro por diferimiento a ${months} MSI (Tx #${transaction_id})`,
+        monto: finalAmount,
+        descripcion: `Reintegro por diferimiento a ${finalMonths} MSI (Tx #${finalTxId})`,
       });
 
       const folio = `FOL-MSI-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -156,15 +165,15 @@ export function registerInstallmentsTools(server: McpServer, data: BankDataSourc
               success: true,
               folio_bancario: folio,
               usuario,
-              transaccion_diferida: transaction_id,
-              monto_diferido: purchase_amount,
-              plazo_meses: months,
+              transaccion_diferida: finalTxId,
+              monto_diferido: finalAmount,
+              plazo_meses: finalMonths,
               cuota_mensual: cuotaMensual,
-              liquidez_inmediata_reintegrada: purchase_amount,
+              liquidez_inmediata_reintegrada: finalAmount,
               nuevo_saldo_disponible: nuevoSaldo,
               fecha_autorizacion: new Date().toISOString(),
               primer_vencimiento_cuota: "2026-10-15",
-              comprobante: `Diferimiento autorizado con SoftToken. Se ha reintegrado de inmediato $${purchase_amount.toFixed(2)} MXN a tu cuenta disponible. Próxima mensualidad: $${cuotaMensual.toFixed(2)} MXN. Folio: ${folio}.`,
+              comprobante: `Diferimiento autorizado con SoftToken. Se ha reintegrado de inmediato $${finalAmount.toFixed(2)} MXN a tu cuenta disponible. Próxima mensualidad: $${cuotaMensual.toFixed(2)} MXN. Folio: ${folio}.`,
             }),
           },
         ],

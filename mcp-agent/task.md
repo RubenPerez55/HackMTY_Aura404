@@ -124,6 +124,7 @@ Reglas de estructura:
   aplica si el usuario elige "diferir a plazos". Pon ahí el `id` de esa
   opción; el frontend deshabilita el slider solo cuando el usuario elige
   otra. Si el slider aplica sin importar la opción elegida, omítelo).
+- `interactive_toggle_list`: `items` (array de `{ id, name, amount, currentPaymentMethod, isSelected }`). Úsalo para conmutar servicios a domiciliar (exención de anualidad).
 - `security_action_gate`: `actionLabel` (string, texto del botón de
   confirmar), `summaryBadge` (string, resumen corto de qué se va a
   autorizar).
@@ -191,8 +192,51 @@ Reglas de estructura:
 - Acción bancaria sensible: termina la pantalla con
   `security_action_gate`. No sustituyas esta verificación por un botón
   genérico.
-- Usa normalmente entre 2 y 5 componentes. Evita mostrar componentes que
-  repitan la misma información y no inventes datos para llenar una vista.
+### Guía por Escenario de la Demo (spec.md)
+
+1. **Pico de Servicio (`SERVICE_SPIKE`, ej. Recibo CFE alto)**:
+   - Tool inicial: consulta `banking__get_user_points` para conocer los puntos acumulados del cliente.
+   - Pantalla generada:
+     - `metric_delta_header`: sobrecosto (`currentValue: monto_actual`, `baselineValue: promedio_historico`, `deltaText: "+158% vs consumo habitual"`, `status: "warning"`).
+     - `trend_history_chart`: 2 barras (`{ label: "Promedio histórico", amount: promedio_historico }`, `{ label: "Este mes", amount: monto_actual, isAnomaly: true }`).
+     - `solution_matrix_selector`: opciones (ej. "Cubrir excedente con Puntos Banorte" [recomendada, iconName: "points"], "Pagar cargo completo en débito").
+     - `dynamic_value_slider`: `unitLabel: "puntos"`, `basis: sobrecosto`, `min: 0`, `max: puntos_disponibles`, `step: 100`, `value: puntos_a_canjear`, `calculations: [{ label: "Bonificación en pesos", value: bonificacion, format: "currency" }, { label: "Cargo neto a débito", value: cargo_neto, format: "currency" }]`.
+     - `security_action_gate`: `actionLabel: "Canjear Puntos y Amortiguar Recibo"`, `summaryBadge: "Ahorro con Puntos Banorte"`.
+   - Turno de confirmación 2FA:
+     - Invoca `banking__apply_points_redemption(usuario, puntos_a_canjear, token_2fa)`.
+     - Devuelve pantalla `confirmation_receipt` con folio y nuevo saldo.
+
+2. **Renovación Anual Inminente (`ANNUAL_FEE_IMMINENT`, Anualidad de Tarjeta)**:
+   - Tool inicial: consulta `banking__get_domiciliation_candidates` para obtener la comisión de anualidad y la lista de servicios candidatos.
+   - Pantalla generada:
+     - `metric_delta_header`: cobro previsto (`currentValue: 1500`, `deltaText: "Vence en 4 días hábiles"`, `status: "warning"`).
+     - `interactive_toggle_list`: `items` con los servicios recurrentes no domiciliados detectados (CFE, Telmex, Naturgy, Netflix) obtenidos de la herramienta (`{ id, name, amount, currentPaymentMethod: "Manual", isSelected: false }`).
+     - `solution_matrix_selector`: opciones:
+       - `{ id: "domiciliation", title: "Domiciliar servicios y condonar al 100%", subtitle: "Ahorra $1,500 MXN domiciliando tus pagos habituales", recommended: true, iconName: "domiciliation" }`
+       - `{ id: "pay_fee", title: "Pagar anualidad ordinaria", subtitle: "Cargo automático de $1,500 MXN en la fecha de corte", iconName: "installments" }`
+     - `security_action_gate`: `actionLabel: "Domiciliar y Exentar Anualidad"`, `summaryBadge: "Exención del 100% ($1,500 MXN)"`.
+   - Turno de confirmación 2FA:
+     - Invoca `banking__apply_domiciliation_and_waive_fee(usuario, services, token_2fa)`.
+     - Devuelve pantalla `confirmation_receipt` con folio `FOL-DOM-...` y confirmación de anualidad condonada a $0 MXN.
+
+3. **Golpe de Liquidez por Compra Extraordinaria (`LIQUIDITY_SHOCK`, Urgencia Médica)**:
+   - Tools iniciales: consulta `banking__get_payroll_calendar` (para conocer días restantes para nómina y presupuesto diario) y/o `banking__simulate_installments` (monto: 18500, months: 6).
+   - Pantalla generada:
+     - `metric_delta_header`: gasto extraordinario (`currentValue: 18500`, `deltaText: "Faltan X días para dispersión de nómina"`, `status: "critical"`).
+     - `trend_history_chart`: proyección comparativa:
+       - `{ label: "Saldo disponible actual", amount: saldo_actual }`
+       - `{ label: "Saldo con Plan Alivio", amount: saldo_actual + 18500, isProjected: true }`
+     - `solution_matrix_selector`: opciones:
+       - `{ id: "installments_6m", title: "Plan Alivio: 6 Meses Sin Intereses", subtitle: "Recupera $18,500 MXN hoy · Cuota fija de $3,083.33/mes", recommended: true, iconName: "installments" }`
+       - `{ id: "installments_3m", title: "Plan Alivio: 3 Meses Sin Intereses", subtitle: "Recupera $18,500 MXN hoy · Cuota fija de $6,166.67/mes", iconName: "installments" }`
+       - `{ id: "payroll_advance", title: "Adelanto de Nómina", subtitle: "Dispersión inmediata a débito", iconName: "points" }`
+     - `dynamic_value_slider`: control deslizante de plazos en meses:
+       - `min: 3`, `max: 12`, `step: 3`, `value: 6`, `unitLabel: "meses"`, `basis: 18500`, `appliesToOptionId: "installments_6m"`.
+       - `calculations: [{ label: "Cuota mensual fija", value: 3083.33, format: "currency" }, { label: "Liquidez restaurada", value: 18500, format: "currency" }]`.
+     - `security_action_gate`: `actionLabel: "Restaurar Liquidez y Confirmar Plan"`, `summaryBadge: "Recupera $18,500 MXN disponibles"`.
+   - Turno de confirmación 2FA:
+     - Invoca `banking__apply_installments(usuario, transaction_id, purchase_amount, months, token_2fa)`.
+     - Devuelve pantalla `confirmation_receipt` con folio `FOL-MSI-...`, nuevo saldo disponible y calendario de cuotas.
 
 Reglas generales:
 
