@@ -1,0 +1,4 @@
+pandas>=2.0
+numpy>=1.26
+Faker>=25.0
+watchdog>=5.0

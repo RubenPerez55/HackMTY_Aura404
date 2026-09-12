@@ -1,0 +1,245 @@
+id_transaccion,usuario,fecha,categoria,monto,descripcion
+1,Ruben Perez,2026-07-27 00:00:00,Compras,1211.8,Bien tengo características político estas.
+2,Ruben Perez,2026-06-20 00:00:00,Transporte,447.31,Este pasó g algunos psoe.
+3,Ruben Perez,2026-09-10 00:00:00,Servicios,508.92,Principio tiene quiero.
+4,Ruben Perez,2026-07-22 00:00:00,Compras,336.67,Instituciones solamente estados.
+5,Ruben Perez,2026-07-16 00:00:00,Comida,456.98,Presencia cara relación palabra.
+6,Ruben Perez,2026-05-22 00:00:00,Transporte,245.01,Políticos aquella jóvenes.
+7,Ruben Perez,2026-09-04 00:00:00,Entretenimiento,315.15,Interés podría presencia región.
+8,Ruben Perez,2026-07-01 00:00:00,Servicios,1617.06,Estamos historia cierto.
+9,Ruben Perez,2026-09-11 00:00:00,Comida,280.9,De calidad sectores ha sean primero.
+10,Ruben Perez,2026-07-11 00:00:00,Entretenimiento,722.64,Dijo esta fuerza tema solamente.
+11,Ruben Perez,2026-06-03 00:00:00,Compras,1103.36,Estados problema momento.
+12,Ruben Perez,2026-06-24 00:00:00,Compras,1250.17,Políticas objetivo españa zonas siendo fácil.
+13,Ruben Perez,2026-08-23 00:00:00,Transporte,428.34,En bajo estuvo trabajo.
+14,Ruben Perez,2026-06-10 00:00:00,Otros,999.26,Comunidad ni obra debido menor principal.
+15,Ruben Perez,2026-06-29 00:00:00,Comida,156.18,Necesidad momento él.
+16,Ruben Perez,2026-07-16 00:00:00,Entretenimiento,383.37,Solamente servicios rosa nuevo nada afirmó.
+17,Ruben Perez,2026-06-07 00:00:00,Otros,687.02,Mayoría rafael miguel.
+18,Ruben Perez,2026-09-08 00:00:00,Comida,513.93,Buscar realidad madrid participación estamos mujer.
+19,Ruben Perez,2026-07-09 00:00:00,Entretenimiento,693.72,Programa distintas asimismo.
+20,Ruben Perez,2026-05-19 00:00:00,Transporte,235.86,Estaba último juego ejemplo distintos.
+21,Ruben Perez,2026-06-25 00:00:00,Renta,9920.88,Tal larga alrededor unidad todas efecto.
+22,Ruben Perez,2026-06-27 00:00:00,Comida,563.96,Materia civil mis presencia él.
+23,Ruben Perez,2026-05-29 00:00:00,Comida,228.65,Cuanto información imposible lo tipo.
+24,Ruben Perez,2026-09-08 00:00:00,Servicios,977.94,Pequeño vino pensar.
+25,Ruben Perez,2026-06-12 00:00:00,Entretenimiento,674.69,Semanas que presidente embargo.
+26,Ruben Perez,2026-06-23 00:00:00,Transporte,440.22,Especial medida muchas octubre allí.
+27,Ruben Perez,2026-07-02 00:00:00,Transporte,413.99,Cabo cuya exterior del haya.
+28,Ruben Perez,2026-06-29 00:00:00,Salud,296.66,Cada mes este.
+29,Ruben Perez,2026-07-22 00:00:00,Transporte,66.36,Joven conjunto da tarde rafael siendo.
+30,Ruben Perez,2026-07-29 00:00:00,Compras,786.11,Adelante todavía al todos.
+31,Ruben Perez,2026-07-20 00:00:00,Comida,227.7,Vez tenido medios niños señor.
+32,Ruben Perez,2026-08-05 00:00:00,Compras,2264.51,Europea sería pocos actividad.
+33,Ruben Perez,2026-07-13 00:00:00,Salud,1521.23,Necesidad haya sería sino.
+34,Ruben Perez,2026-07-26 00:00:00,Servicios,1768.02,Luz ii calidad.
+35,Ruben Perez,2026-05-29 00:00:00,Comida,431.37,Personal instituciones juicio.
+36,Ruben Perez,2026-06-07 00:00:00,Transporte,302.65,Haciendo diversos habían trabajadores miedo.
+37,Ruben Perez,2026-06-03 00:00:00,Otros,669.87,Camino fuerte bajo tampoco.
+38,Ruben Perez,2026-05-25 00:00:00,Transporte,340.8,Sí toda dice finalmente.
+39,Ruben Perez,2026-09-03 00:00:00,Comida,287.56,Hechos oficial defensa.
+40,Ruben Perez,2026-06-10 00:00:00,Salud,1820.6,Quiere podemos película democracia.
+41,Ruben Perez,2026-06-02 00:00:00,Compras,2383.07,Embargo político todas.
+42,Ruben Perez,2026-08-03 00:00:00,Comida,472.69,Manos tanto cual española pesar.
+43,Ruben Perez,2026-07-12 00:00:00,Comida,580.05,Tengo permite he económica pese mundo.
+44,Ruben Perez,2026-08-29 00:00:00,Comida,577.87,Apenas estado rafael lo viejo.
+45,Ruben Perez,2026-07-08 00:00:00,Salud,1255.52,Medida también explicó siguiente.
+46,Ruben Perez,2026-08-08 00:00:00,Servicios,1615.37,Cuya decía justicia.
+47,Ruben Perez,2026-07-17 00:00:00,Transporte,323.15,Adelante mal encima.
+48,Ruben Perez,2026-07-15 00:00:00,Otros,185.66,Mejores oro necesidad comunicación solución todos.
+49,Ruben Perez,2026-05-20 00:00:00,Compras,1869.59,Llama quiere esas.
+50,Ruben Perez,2026-07-15 00:00:00,Otros,507.21,Trabajar primera alrededor.
+51,Ruben Perez,2026-05-17 00:00:00,Comida,266.3,Mucha enfermedad español.
+52,Ruben Perez,2026-05-24 00:00:00,Compras,1082.61,Obra si amigos base dice.
+53,Ruben Perez,2026-08-17 00:00:00,Servicios,1630.3,Capaz esta términos blanca mes que.
+54,Ruben Perez,2026-06-27 00:00:00,Salud,472.16,Posibilidad aquí etc.
+55,Ruben Perez,2026-06-01 00:00:00,Transporte,456.13,Rosa existencia ocasión libro hacia boca.
+56,Ruben Perez,2026-07-07 00:00:00,Comida,435.69,Poder juego voluntad han.
+57,Ruben Perez,2026-07-27 00:00:00,Otros,234.61,Nosotros tengo fueron sean.
+58,Ruben Perez,2026-05-16 00:00:00,Comida,252.39,Volver llegó soy casa cuya distintos.
+59,Ruben Perez,2026-08-19 00:00:00,Servicios,1474.2,Podrá solución figura pronto.
+60,Ruben Perez,2026-06-13 00:00:00,Comida,486.87,Ley necesario grande cuya.
+61,Hector Barrera,2026-05-15 00:00:00,Servicios,894.77,Flores sabía nuestra especial rosa nivel.
+62,Hector Barrera,2026-09-06 00:00:00,Otros,768.79,Sería natural momentos se dejar mundo.
+63,Hector Barrera,2026-05-27 00:00:00,Transporte,494.1,Puso cinco llama favor.
+64,Hector Barrera,2026-07-11 00:00:00,Salud,857.41,Y real alguna amigos semanas entonces.
+65,Hector Barrera,2026-08-18 00:00:00,Transporte,85.08,Nuestras ocho en ningún.
+66,Hector Barrera,2026-06-29 00:00:00,Compras,251.16,Diez doctor eran.
+67,Hector Barrera,2026-08-01 00:00:00,Servicios,1998.89,Llamado eran junio.
+68,Hector Barrera,2026-08-28 00:00:00,Otros,238.34,Volvió r diversos imagen.
+69,Hector Barrera,2026-08-21 00:00:00,Transporte,156.21,Ser último formación.
+70,Hector Barrera,2026-08-17 00:00:00,Servicios,2401.46,Origen estas son estructura mismos.
+71,Hector Barrera,2026-08-31 00:00:00,Salud,926.22,Ahora propios debe los.
+72,Hector Barrera,2026-06-16 00:00:00,Servicios,1969.41,Esto cuerpo importantes concepto.
+73,Hector Barrera,2026-05-24 00:00:00,Renta,10238.45,Estudios fondo me cierta libro.
+74,Hector Barrera,2026-08-20 00:00:00,Compras,2104.77,Baja hechos muestra aquella base profesional.
+75,Hector Barrera,2026-07-06 00:00:00,Comida,407.98,Hombre cuya primeras deseo.
+76,Hector Barrera,2026-08-05 00:00:00,Entretenimiento,200.53,Mis único o.
+77,Hector Barrera,2026-06-06 00:00:00,Servicios,2446.64,Producción máximo máximo revolución expresión origen.
+78,Hector Barrera,2026-05-28 00:00:00,Comida,355.59,Ello comunidad desde.
+79,Hector Barrera,2026-08-23 00:00:00,Transporte,291.8,Otra ahí etapa partidos algunos.
+80,Hector Barrera,2026-09-12 00:00:00,Servicios,1202.37,Siguiente hombre cuadro jorge grado dentro.
+81,Hector Barrera,2026-07-24 00:00:00,Otros,491.0,Formas embargo sobre.
+82,Hector Barrera,2026-06-15 00:00:00,Entretenimiento,485.82,Congreso iba nuestras precios.
+83,Hector Barrera,2026-09-02 00:00:00,Entretenimiento,547.63,Formación políticos paciente ejército.
+84,Hector Barrera,2026-06-13 00:00:00,Transporte,423.87,Mesa problemas marcha nada otros.
+85,Hector Barrera,2026-05-24 00:00:00,Entretenimiento,641.15,B peor condiciones.
+86,Hector Barrera,2026-08-29 00:00:00,Otros,350.22,Dijo director condiciones razones.
+87,Hector Barrera,2026-05-21 00:00:00,Comida,81.51,Electoral cama material creación teoría.
+88,Hector Barrera,2026-07-02 00:00:00,Entretenimiento,274.61,Comisión alta vida.
+89,Hector Barrera,2026-06-25 00:00:00,Otros,168.4,Armas mí nada etc capaz.
+90,Hector Barrera,2026-07-05 00:00:00,Servicios,763.35,Haciendo sueño aquellos diferentes soy.
+91,Hector Barrera,2026-08-26 00:00:00,Transporte,181.3,Mi civil hablar.
+92,Hector Barrera,2026-08-21 00:00:00,Servicios,2440.69,Varias capacidad ellas visto.
+93,Hector Barrera,2026-08-09 00:00:00,Entretenimiento,363.73,Dice llamado alguien instituto cosa.
+94,Hector Barrera,2026-09-12 00:00:00,Compras,1463.27,Tiempo vez visita imágenes.
+95,Hector Barrera,2026-07-01 00:00:00,Comida,380.72,Luego seguro pueblo.
+96,Hector Barrera,2026-07-22 00:00:00,Entretenimiento,523.41,Administración origen metros número tendrá cuarto.
+97,Hector Barrera,2026-05-30 00:00:00,Comida,589.03,Don tribunal destino control rafael.
+98,Hector Barrera,2026-08-09 00:00:00,Comida,93.39,Aire régimen título día suerte nosotros.
+99,Hector Barrera,2026-09-04 00:00:00,Comida,83.1,Cantidad central calidad objeto.
+100,Hector Barrera,2026-07-11 00:00:00,Entretenimiento,635.9,Soy hay amor antes final.
+101,Hector Barrera,2026-06-10 00:00:00,Transporte,394.07,Toda santa tema tiene r.
+102,Hector Barrera,2026-06-28 00:00:00,Servicios,1440.23,Van público problema alguna sin propia ayer.
+103,Hector Barrera,2026-09-09 00:00:00,Compras,1944.58,Fin particular pedro contenido aquí revolución.
+104,Hector Barrera,2026-05-23 00:00:00,Renta,8190.82,Cuarto hubiera salir.
+105,Hector Barrera,2026-08-12 00:00:00,Comida,355.99,Vez falta quien.
+106,Hector Barrera,2026-06-22 00:00:00,Servicios,1924.43,Español república militares sobre presente.
+107,Hector Barrera,2026-08-08 00:00:00,Otros,713.0,Servicios padre crisis viene líder.
+108,Hector Barrera,2026-06-20 00:00:00,Comida,121.94,Aspectos pasado reunión tomar.
+109,Hector Barrera,2026-06-27 00:00:00,Entretenimiento,570.95,Especialmente algunas acción serán.
+110,Hector Barrera,2026-07-10 00:00:00,Comida,517.91,Favor tierra marco antonio vista.
+111,Hector Barrera,2026-07-27 00:00:00,Comida,465.22,Cual está sistemas libre conciencia.
+112,Hector Barrera,2026-06-07 00:00:00,Transporte,377.06,Ante pedro tiene se crecimiento.
+113,Hector Barrera,2026-07-31 00:00:00,Servicios,1771.6,Espera justicia congreso pedro les.
+114,Hector Barrera,2026-09-03 00:00:00,Comida,352.58,Paz texto ejemplo todavía.
+115,Hector Barrera,2026-06-07 00:00:00,Entretenimiento,727.78,Felipe precisamente cabo pesar claro salud.
+116,Hector Barrera,2026-06-06 00:00:00,Compras,1309.6,España madrid superior.
+117,Hector Barrera,2026-07-27 00:00:00,Servicios,388.82,Tenían efectos elecciones hombre.
+118,Hector Barrera,2026-07-28 00:00:00,Comida,479.8,Muerto proceso grado.
+119,Hector Barrera,2026-05-25 00:00:00,Otros,900.16,Hijo mitad don sino josé derecho.
+120,Hector Barrera,2026-09-07 00:00:00,Comida,127.2,J plaza todos seis.
+121,Hector Castro,2026-06-22 00:00:00,Otros,292.97,Aparece fácil miembros militar parece materia partes.
+122,Hector Castro,2026-07-02 00:00:00,Transporte,313.79,Cuba lópez propia junto curso.
+123,Hector Castro,2026-08-21 00:00:00,Comida,87.08,Últimos congreso personal contrario.
+124,Hector Castro,2026-08-26 00:00:00,Entretenimiento,285.25,Yo hermano condiciones única medidas hacer.
+125,Hector Castro,2026-05-23 00:00:00,Comida,442.26,Aspectos pensar podría gente.
+126,Hector Castro,2026-07-19 00:00:00,Comida,438.34,Desarrollo económica valores diario elecciones mayo.
+127,Hector Castro,2026-05-16 00:00:00,Comida,417.73,Uso políticos derecho presencia.
+128,Hector Castro,2026-06-22 00:00:00,Comida,305.11,Juego cultura propio mil amor modo.
+129,Hector Castro,2026-06-18 00:00:00,Otros,475.38,Menos forma fútbol.
+130,Hector Castro,2026-05-22 00:00:00,Servicios,1086.47,Grandes palabras ideas grande éxito tales.
+131,Hector Castro,2026-05-20 00:00:00,Comida,584.4,Haya antes tendrá calidad flores riesgo.
+132,Hector Castro,2026-07-26 00:00:00,Compras,1413.85,Varias resultado ciencia partes hora.
+133,Hector Castro,2026-06-26 00:00:00,Comida,588.31,Iglesia cuatro julio pedro.
+134,Hector Castro,2026-06-20 00:00:00,Comida,333.74,Ambos problemas capaz.
+135,Hector Castro,2026-07-06 00:00:00,Comida,396.89,Podía dan color.
+136,Hector Castro,2026-06-20 00:00:00,Compras,320.89,Piel mesa miedo éxito origen.
+137,Hector Castro,2026-06-24 00:00:00,Otros,463.97,Me total políticas.
+138,Hector Castro,2026-09-10 00:00:00,Entretenimiento,609.69,Atrás ayuda tú hacer sol cosas.
+139,Hector Castro,2026-09-06 00:00:00,Servicios,2243.27,Hecho escuela hombre libre experiencia deseo.
+140,Hector Castro,2026-08-03 00:00:00,Transporte,210.48,Junto cargo francia plazo hecho tras.
+141,Hector Castro,2026-07-06 00:00:00,Comida,239.0,Alto antes norte teatro era dólares.
+142,Hector Castro,2026-07-22 00:00:00,Servicios,474.53,Trabajar práctica diferentes zonas asimismo.
+143,Hector Castro,2026-07-31 00:00:00,Comida,156.23,Medida todos europea acuerdo medida.
+144,Hector Castro,2026-08-09 00:00:00,Comida,236.95,Cuatro político e pasado diferencia.
+145,Hector Castro,2026-06-22 00:00:00,Comida,409.59,Curso aún acto costa.
+146,Hector Castro,2026-09-03 00:00:00,Entretenimiento,789.86,Ser al época palabra propios reunión.
+147,Hector Castro,2026-07-17 00:00:00,Comida,585.96,Animales precisamente podemos.
+148,Hector Castro,2026-05-21 00:00:00,Transporte,361.58,Embargo junio región nuestros.
+149,Hector Castro,2026-07-09 00:00:00,Entretenimiento,773.06,Ii consumo encuentra estas manos.
+150,Hector Castro,2026-07-07 00:00:00,Comida,271.41,Miembros toda imagen pese.
+151,Hector Castro,2026-09-12 00:00:00,Comida,152.16,Militar lugar ejército.
+152,Hector Castro,2026-06-03 00:00:00,Comida,163.7,Cámara e instituciones.
+153,Hector Castro,2026-06-01 00:00:00,Compras,1677.09,Varios lucha cabo izquierda tiempos exterior.
+154,Hector Castro,2026-08-18 00:00:00,Comida,119.28,José pasar ayuda.
+155,Hector Castro,2026-07-28 00:00:00,Compras,2661.91,Médico alrededor varios necesario.
+156,Hector Castro,2026-07-25 00:00:00,Otros,217.3,Exterior ella industria mundo pregunta técnica.
+157,Hector Castro,2026-08-02 00:00:00,Comida,115.57,Aumento jefe muestra ministerio mirada comenzó.
+158,Hector Castro,2026-07-01 00:00:00,Servicios,1094.26,Juicio p entre.
+159,Hector Castro,2026-06-24 00:00:00,Otros,724.93,Presenta año tuvo sería.
+160,Hector Castro,2026-08-12 00:00:00,Entretenimiento,222.41,Decía libre dirección crecimiento.
+161,Hector Castro,2026-06-02 00:00:00,Compras,1261.79,Posición bajo evitar.
+162,Hector Castro,2026-06-21 00:00:00,Servicios,2012.12,Otras martín muchos embargo.
+163,Hector Castro,2026-06-06 00:00:00,Compras,2535.74,Padre dijo autor.
+164,Hector Castro,2026-05-21 00:00:00,Transporte,401.08,Programas corte mal.
+165,Hector Castro,2026-06-14 00:00:00,Servicios,1558.06,Seis sociedad aparece varias.
+166,Hector Castro,2026-06-11 00:00:00,Transporte,367.6,Partidos práctica dejó posibilidad materia.
+167,Hector Castro,2026-07-03 00:00:00,Transporte,151.48,Futuro mayores nuestro siguientes están días.
+168,Hector Castro,2026-07-28 00:00:00,Salud,393.44,Nuestra negro existencia posibilidades siquiera ministro.
+169,Hector Castro,2026-07-30 00:00:00,Comida,214.67,Modo posición ha dios acerca.
+170,Hector Castro,2026-09-12 00:00:00,Transporte,452.35,Hija siguientes principal centro segunda unidos diferencia.
+171,Hector Castro,2026-09-08 00:00:00,Transporte,276.11,Puerto esto voy habían cuarto pasado.
+172,Hector Castro,2026-05-22 00:00:00,Compras,2115.1,Práctica fuentes cuestión.
+173,Hector Castro,2026-05-18 00:00:00,Comida,163.28,U hacen junio norte tenían.
+174,Hector Castro,2026-09-04 00:00:00,Entretenimiento,546.73,Opinión sangre plan espera.
+175,Hector Castro,2026-06-16 00:00:00,Servicios,771.6,Señaló llamado local conseguir guerra r.
+176,Hector Castro,2026-06-15 00:00:00,Transporte,212.53,Queda tarde c.
+177,Hector Castro,2026-07-20 00:00:00,Compras,2317.88,Calle trabajadores exterior.
+178,Hector Castro,2026-08-23 00:00:00,Servicios,1638.83,Estados tengo políticos aire encontrar pronto.
+179,Hector Castro,2026-07-22 00:00:00,Entretenimiento,619.14,Memoria alta operación nacional tienen camino.
+180,Hector Castro,2026-08-24 00:00:00,Compras,563.75,Pues obstante teatro manuel pues arriba.
+181,Javier Ortiz,2026-07-22 00:00:00,Renta,6954.22,Centro ello control.
+182,Javier Ortiz,2026-07-30 00:00:00,Transporte,151.21,Educación través presenta instituto.
+183,Javier Ortiz,2026-07-01 00:00:00,Servicios,993.62,Época le efecto carne.
+184,Javier Ortiz,2026-05-30 00:00:00,Transporte,205.54,Menor fueron amigos mirada película.
+185,Javier Ortiz,2026-08-22 00:00:00,Comida,514.27,Río próximo apenas.
+186,Javier Ortiz,2026-05-27 00:00:00,Compras,671.83,Algún junio nuestra.
+187,Javier Ortiz,2026-05-31 00:00:00,Servicios,1443.23,Españoles decir presidente buena tan.
+188,Javier Ortiz,2026-07-16 00:00:00,Transporte,198.33,Economía ya económica espacio.
+189,Javier Ortiz,2026-06-07 00:00:00,Otros,421.19,Necesario perdido pesar.
+190,Javier Ortiz,2026-07-14 00:00:00,Servicios,2452.08,Autoridades me ex.
+191,Javier Ortiz,2026-06-03 00:00:00,Comida,167.74,Cuba sin viaje.
+192,Javier Ortiz,2026-09-12 00:00:00,Transporte,198.18,Misma carta octubre prueba dólares oposición.
+193,Javier Ortiz,2026-08-23 00:00:00,Comida,310.33,Pública efecto puedo habría viejo.
+194,Javier Ortiz,2026-06-13 00:00:00,Transporte,148.68,Viejo fuerza solo contenido entrar.
+195,Javier Ortiz,2026-07-28 00:00:00,Comida,455.35,Sector con vamos difícil aspecto.
+196,Javier Ortiz,2026-08-09 00:00:00,Transporte,463.94,Nombre cuya joven mundial principio va.
+197,Javier Ortiz,2026-08-28 00:00:00,Comida,343.25,Costa misma ejército existe.
+198,Javier Ortiz,2026-07-17 00:00:00,Salud,1637.03,Verdad han razones cosas viejo asociación.
+199,Javier Ortiz,2026-07-25 00:00:00,Entretenimiento,432.43,Usted costa rey has no.
+200,Javier Ortiz,2026-05-21 00:00:00,Comida,408.3,Alguna características autoridades siguientes gente.
+201,Javier Ortiz,2026-06-25 00:00:00,Comida,465.39,Allí pone sistemas recursos s.
+202,Javier Ortiz,2026-06-28 00:00:00,Entretenimiento,377.13,Cine su nuestras.
+203,Javier Ortiz,2026-08-10 00:00:00,Compras,1755.5,Mesa cuales central otro.
+204,Javier Ortiz,2026-08-27 00:00:00,Compras,1294.49,Premio debido américa.
+205,Javier Ortiz,2026-06-08 00:00:00,Otros,264.7,Mirada santiago hizo suelo muerto.
+206,Javier Ortiz,2026-06-20 00:00:00,Transporte,471.09,Servicio estudios en.
+207,Javier Ortiz,2026-08-27 00:00:00,Otros,317.79,Ver mal dicho.
+208,Javier Ortiz,2026-06-14 00:00:00,Salud,1512.4,Universidad ya nuestra.
+209,Javier Ortiz,2026-09-04 00:00:00,Comida,594.62,Pueda personal jóvenes.
+210,Javier Ortiz,2026-07-04 00:00:00,Transporte,413.1,Eso tendrá países costa pues.
+211,Javier Ortiz,2026-06-04 00:00:00,Comida,373.53,Estudios política ahora hizo exterior contenido.
+212,Javier Ortiz,2026-08-26 00:00:00,Comida,200.3,Paciente mientras él prueba cuando.
+213,Javier Ortiz,2026-05-20 00:00:00,Servicios,1510.55,Obstante éste blanco.
+214,Javier Ortiz,2026-08-02 00:00:00,Entretenimiento,558.98,Tener saber pp estar contrario años.
+215,Javier Ortiz,2026-07-29 00:00:00,Comida,518.08,Diversas cuya área.
+216,Javier Ortiz,2026-07-19 00:00:00,Transporte,399.44,D mayor última perdido economía.
+217,Javier Ortiz,2026-05-20 00:00:00,Servicios,1783.08,Partes ex medida.
+218,Javier Ortiz,2026-08-09 00:00:00,Transporte,58.11,Buen figura guerra ir san.
+219,Javier Ortiz,2026-06-07 00:00:00,Compras,263.75,Partir vio frente existen período.
+220,Javier Ortiz,2026-07-18 00:00:00,Compras,1710.61,Diversas europea pedro destino viaje pasa.
+221,Javier Ortiz,2026-09-01 00:00:00,Transporte,495.71,Bueno n mujer fácil pensar punto.
+222,Javier Ortiz,2026-08-22 00:00:00,Otros,727.66,Estilo peor nombre actitud uso.
+223,Javier Ortiz,2026-09-08 00:00:00,Entretenimiento,665.85,Nueva palabras tengo bien hacer.
+224,Javier Ortiz,2026-07-19 00:00:00,Comida,305.48,Opinión bastante alta además cámara.
+225,Javier Ortiz,2026-08-03 00:00:00,Compras,778.4,Grandes quedó tampoco serie podía.
+226,Javier Ortiz,2026-07-18 00:00:00,Transporte,119.94,Personal pudo padres política.
+227,Javier Ortiz,2026-07-22 00:00:00,Compras,901.24,Puntos paso fútbol mayores punto.
+228,Javier Ortiz,2026-09-02 00:00:00,Transporte,482.44,Base dicen esto llama muchos quedó.
+229,Javier Ortiz,2026-08-05 00:00:00,Entretenimiento,580.84,Usted niños cualquier otras cambio p.
+230,Javier Ortiz,2026-06-21 00:00:00,Entretenimiento,759.34,Europa régimen dicen junto visita.
+231,Javier Ortiz,2026-06-28 00:00:00,Compras,1918.33,Sector haber formas mi cada.
+232,Javier Ortiz,2026-09-11 00:00:00,Transporte,151.98,Policía interior habían tomar administración organización.
+233,Javier Ortiz,2026-07-25 00:00:00,Comida,249.18,Otro forma gobierno actitud.
+234,Javier Ortiz,2026-06-30 00:00:00,Comida,377.83,Movimiento rosa hubo.
+235,Javier Ortiz,2026-06-17 00:00:00,Renta,13502.41,Metros diez seguro.
+236,Javier Ortiz,2026-08-29 00:00:00,Transporte,243.14,Haya al después aun josé ayuda.
+237,Javier Ortiz,2026-07-10 00:00:00,Salud,1986.12,Medio socialista principales carta.
+238,Javier Ortiz,2026-07-01 00:00:00,Transporte,328.12,Jefe dólares siete grupo.
+239,Javier Ortiz,2026-07-23 00:00:00,Comida,438.91,Presenta peso personas operación.
+240,Javier Ortiz,2026-05-30 00:00:00,Comida,327.4,Puntos será bastante.
+241,Ruben Perez,2026-09-12 01:10:04,Compras,7800.0,Compra relámpago en tienda departamental
+242,Hector Barrera,2026-09-12 01:10:05,Servicios,18500.0,Empresa de servicios digitales - cargo único
+243,Hector Castro,2026-09-12 01:10:06,Salud,5200.0,Laboratorios y estudios clínicos
+244,Javier Ortiz,2026-09-12 01:10:07,Comida,3100.0,Cena ejecutiva en restaurante premium

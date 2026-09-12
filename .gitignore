@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node.js
+node_modules/
+*.tsbuildinfo
+
+# HackMTY: repositorios o carpetas ajenas y artefactos locales
+mcp-demo/
+
+# macOS
+.DS_Store

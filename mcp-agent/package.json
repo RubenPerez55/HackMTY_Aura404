@@ -1,0 +1,31 @@
+{
+  "name": "mcp-agent",
+  "version": "1.0.0",
+  "description": "MCP Agent with transport (stdio/SSE/HTTP), tool loop, and multi-provider LLM",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:host": "tsx src/index.ts",
+    "dev": "tsx src/index.ts",
+    "serve": "tsx src/backend/server.ts",
+    "serve:build": "node dist/backend/server.js",
+    "smoke:backend": "tsx scripts/backend-smoke.ts",
+    "probe": "tsx scripts/mcp-probe.ts",
+    "smoke": "tsx examples/smoke-test.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

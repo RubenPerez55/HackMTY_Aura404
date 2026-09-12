@@ -1,0 +1,10 @@
+id_tarjeta,usuario,tipo,marca,numero_enmascarado,vencimiento,estatus,limite_credito,saldo_utilizado
+TC-P001,Ruben Perez,Credito,Visa Platinum,4111 •••• •••• 8137,08/29,Activa,50000.0,8000.0
+TC-P002,Ruben Perez,Credito,Mastercard Black,5521 •••• •••• 5562,11/28,Activa,30000.0,6500.0
+TC-P003,Ruben Perez,Debito,Visa,4557 •••• •••• 9904,03/30,Activa,,
+TC-P004,Ruben Perez,Credito,Visa Clásica,4000 •••• •••• 4498,01/26,Vencida,10000.0,3200.0
+TC-HB001,Hector Barrera,Credito,Visa Clásica,4111 •••• •••• 4210,05/27,Activa,15000.0,9800.0
+TC-HB002,Hector Barrera,Debito,Mastercard,5354 •••• •••• 7712,09/29,Activa,,
+TC-HC001,Hector Castro,Credito,Visa Clásica,4111 •••• •••• 3309,02/24,Vencida,8000.0,7600.0
+TC-HC002,Hector Castro,Credito,Mastercard,5214 •••• •••• 8844,07/25,Cancelada,12000.0,0.0
+TC-HC003,Hector Castro,Debito,Visa,4557 •••• •••• 2210,10/24,Cancelada,,
