@@ -42,7 +42,7 @@ español -- no fuerces JSON donde no aplica.
     "type": "updateComponents",
     "surfaceId": "<mismo id>",
     "components": [
-      { "id": "root", "component": "surface_root", "catalogId": "banorte-shockabsorber", "children": ["m1", "c1", "s1", "v1", "g1"] },
+      { "id": "root", "component": "surface_root", "catalogId": "banorte-shockabsorber", "title": "Sobrecosto detectado en tu recibo de CFE", "children": ["m1", "c1", "s1", "v1", "g1"] },
       { "id": "m1", "component": "metric_delta_header" },
       { "id": "c1", "component": "trend_history_chart" },
       { "id": "s1", "component": "solution_matrix_selector" },
@@ -64,6 +64,12 @@ Reglas de estructura:
   la lista ordenada (de arriba hacia abajo) de los ids de los
   componentes reales a mostrar. `surface_root` NUNCA lleva su propio
   `updateDataModel` -- no tiene datos, solo agrupa.
+- `root` TAMBIÉN debe llevar un `title` (string, corto, 3-8 palabras):
+  el título general de la pantalla completa (ej. "Sobrecosto detectado
+  en tu recibo de CFE"). Es obligatorio en toda pantalla compuesta --
+  sin él, los componentes se ven como piezas sueltas en vez de una sola
+  pantalla con estructura. El frontend lo muestra arriba de todo, antes
+  del primer componente.
 - Cada componente real de la lista necesita DOS cosas: una entrada en
   `components` (con su `id` y `component`) y su propio
   `updateDataModel` con `path: "/<su id>"` y el `value` que le

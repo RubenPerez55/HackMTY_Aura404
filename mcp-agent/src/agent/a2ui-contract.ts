@@ -166,6 +166,10 @@ const componentRefSchema = z.object({
   // Solo lo lleva el nodo raíz cuando agrupa varios componentes reales,
   // en el orden en que deben mostrarse (de arriba hacia abajo).
   children: z.array(z.string()).optional(),
+  // Solo lo lleva el nodo raíz de una pantalla COMPUESTA: título corto
+  // que resume la pantalla completa, para que el frontend le dé
+  // estructura visual en vez de mostrar los componentes sueltos.
+  title: z.string().optional(),
 });
 
 /** Los 3 tipos de mensaje A2UI que de verdad usamos (ver paso 2). */

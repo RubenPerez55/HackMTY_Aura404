@@ -19,7 +19,7 @@ export default function A2uiSurfaceView({ surface, onConfirm, onCancel }) {
   if (!surface) return null;
 
   if (surface.children) {
-    return <ComposedScreen children={surface.children} onConfirm={onConfirm} />;
+    return <ComposedScreen title={surface.title} children={surface.children} onConfirm={onConfirm} />;
   }
 
   const Component = resolveComponent(surface.component);

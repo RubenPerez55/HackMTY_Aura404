@@ -13,7 +13,7 @@ import { resolveComponent } from "../components/componentRegistry.js";
  *    lo manda hacia `onConfirm` (prop de App.jsx), que continúa la
  *    conversación con el agente (turno N+1).
  */
-export default function ComposedScreen({ children, onConfirm }) {
+export default function ComposedScreen({ title, children, onConfirm }) {
   const solutionChild = children.find((c) => c.component === "solution_matrix_selector");
   const sliderChild = children.find((c) => c.component === "dynamic_value_slider");
   const securityChild = children.find((c) => c.component === "security_action_gate");
@@ -35,6 +35,9 @@ export default function ComposedScreen({ children, onConfirm }) {
 
   return (
     <div className="space-y-4">
+      {title && (
+        <h2 className="text-base font-bold text-gray-900 leading-snug">{title}</h2>
+      )}
       {children.map((child) => {
         if (child.data === undefined) return null; // updateDataModel de ese id no ha llegado (todavía)
         const Component = resolveComponent(child.component);

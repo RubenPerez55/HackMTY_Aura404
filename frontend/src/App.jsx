@@ -264,7 +264,7 @@ export default function App() {
         </div>
       </aside>
 
-      <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200 flex flex-col h-[750px] order-1 lg:order-2">
+      <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200 flex flex-col h-[750px] order-1 lg:order-2">
         {/* Header / saldo */}
         <header className="bg-[#EB0029] text-white px-5 pt-8 pb-6 rounded-b-3xl shadow-md">
           <div className="flex justify-between items-center mb-4">
@@ -390,9 +390,8 @@ export default function App() {
             <span className="text-[10px]">Más</span>
           </button>
         </nav>
-      </div>
 
-      <Modal open={!!openBanner} onClose={closeModal}>
+        <Modal open={!!openBanner} onClose={closeModal}>
         {openBanner?.status === "thinking" && !openBanner.surface && (
           <div className="text-center py-8">
             <i className="fa-solid fa-circle-notch fa-spin text-2xl text-[#EB0029]" />
@@ -515,7 +514,8 @@ export default function App() {
             </div>
           </div>
         )}
-      </Modal>
+        </Modal>
+      </div>
     </div>
   );
 }
