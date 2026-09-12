@@ -230,3 +230,8 @@ mcp-demo/
 # --- frontend (React + Vite) ---
 frontend/node_modules/
 frontend/dist/
+
+# AI Agent instructions & specs (local)
+spec.md
+agents.md
+AGENTS.md
