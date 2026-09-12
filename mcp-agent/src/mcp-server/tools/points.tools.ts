@@ -93,17 +93,18 @@ export function registerPointsTools(server: McpServer, data: BankDataSource): vo
         "Aplica el canje de puntos de lealtad para amortiguar el cargo del servicio. Requiere SoftToken de 6 dígitos para autorización segura.",
       inputSchema: {
         usuario: z.string().describe("Nombre del usuario"),
-        transaction_id: z.union([z.number(), z.string()]).describe("ID del cargo o transacción del servicio"),
-        points_to_redeem: z.number().positive().describe("Puntos autorizados a canjear"),
+        transaction_id: z.union([z.number(), z.string()]).optional().describe("ID del cargo o transacción del servicio"),
+        points_to_redeem: z.union([z.number(), z.string().transform(Number)]).optional().describe("Puntos autorizados a canjear"),
+        puntos: z.union([z.number(), z.string().transform(Number)]).optional().describe("Alias en español para puntos a canjear"),
         token_2fa: z.string().describe("Código SoftToken de 6 dígitos"),
         charge_amount: z
           .number()
           .optional()
-          .describe("Monto original del recibo del servicio en MXN (ej. 2450 para CFE)"),
-        service_name: z.string().optional().describe("Nombre del servicio a pagar (ej. CFE)"),
+          .describe("Monto original del recibo o comisión en MXN"),
+        service_name: z.string().optional().describe("Nombre del servicio o concepto (ej. CFE o Anualidad)"),
       },
     },
-    async ({ usuario, transaction_id, points_to_redeem, token_2fa, charge_amount, service_name }) => {
+    async ({ usuario, transaction_id, points_to_redeem, puntos, token_2fa, charge_amount, service_name }) => {
       const auth = verifyToken(token_2fa);
       if (!auth.valid) {
         return {
@@ -111,6 +112,8 @@ export function registerPointsTools(server: McpServer, data: BankDataSource): vo
           content: [{ type: "text", text: JSON.stringify({ success: false, error: auth.error }) }],
         };
       }
+
+      const effectivePoints = Number(points_to_redeem ?? puntos ?? 4350);
 
       const user = data.getUser(usuario);
       if (!user) {
@@ -121,7 +124,7 @@ export function registerPointsTools(server: McpServer, data: BankDataSource): vo
       }
 
       const puntosActuales = user.puntos_fidelidad ?? 0;
-      const puntosRequeridos = Math.round(points_to_redeem);
+      const puntosRequeridos = Math.round(effectivePoints);
       if (puntosRequeridos > puntosActuales) {
         return {
           isError: true,

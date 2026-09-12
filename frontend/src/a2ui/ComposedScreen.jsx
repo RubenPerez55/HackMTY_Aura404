@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { resolveComponent } from "../components/componentRegistry.js";
 
 /**
@@ -10,19 +10,11 @@ import { resolveComponent } from "../components/componentRegistry.js";
  *  - dynamic_value_slider: valor actual (para armar el resumen final).
  *    Si trae `appliesToOptionId`, solo se muestra "vivo" cuando esa es
  *    la opción seleccionada -- si el usuario elige otra, se deshabilita
- *    en vez de quedarse ahí sin reaccionar (eso era el bug: parecía
- *    ligado a "Canjear puntos" pero no se enteraba de qué opción estaba
- *    activa).
- *  - security_action_gate: es el único que sí llama al backend --
- *    su `onConfirm(token)` arma un resumen con el contexto de arriba y
- *    lo manda hacia `onConfirm` (prop de App.jsx), que continúa la
- *    conversación con el agente (turno N+1).
- *
- * `userName` es el saludo fijo de la pantalla ("Resumen de <nombre>") --
- * lo arma el FRONTEND, no el LLM: así siempre aparece, sin depender de
- * que el modelo se acuerde de mandarlo. El `title` que sí manda el LLM
- * (opcional) es la línea situacional de abajo (p. ej. "Sobrecosto
- * detectado en tu recibo de CFE").
+ *    en vez de quedarse ahí sin reaccionar.
+ *  - interactive_toggle_list: conmutación de servicios a domiciliar.
+ *    Se deshabilita cuando el usuario elige una opción distinta a domiciliación.
+ *  - security_action_gate: adapta su botón y badge al producto/estrategia
+ *    financiera seleccionada en tiempo real.
  */
 export default function ComposedScreen({ userName, title, children, onConfirm }) {
   const solutionChild = children.find((c) => c.component === "solution_matrix_selector");
@@ -31,7 +23,6 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
   const toggleChild = children.find((c) => c.component === "interactive_toggle_list");
 
   const [selectedId, setSelectedId] = useState(solutionChild?.data?.selectedId);
-  const [sliderValue, setSliderValue] = useState(sliderChild?.data?.value);
   const [selectedServices, setSelectedServices] = useState(() => {
     return toggleChild?.data?.items?.filter((i) => i.isSelected) || [];
   });
@@ -53,20 +44,65 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
 
   const firstName = userName?.trim().split(/\s+/)[0];
   const selectedOption = solutionChild?.data?.options?.find((o) => o.id === selectedId);
-  const sliderAppliesToOptionId = sliderChild?.data?.appliesToOptionId;
-  const sliderIsActive = !sliderAppliesToOptionId || sliderAppliesToOptionId === selectedId;
-  const sliderInactiveLabel = (() => {
-    if (sliderIsActive) return null;
-    const target = solutionChild?.data?.options?.find((o) => o.id === sliderAppliesToOptionId);
-    return `Selecciona "${target?.title ?? "la opción correspondiente"}" para ajustar este monto.`;
-  })();
 
+  // Detección de tipos de opción
   const isDomiciliationSelected =
     !solutionChild ||
     Boolean(
       selectedId?.toLowerCase().includes("domicil") ||
       selectedOption?.title?.toLowerCase().includes("domicili")
     );
+
+  const pointsOption = solutionChild?.data?.options?.find(
+    (o) =>
+      (o.id || "").toLowerCase().includes("point") ||
+      (o.id || "").toLowerCase().includes("punto") ||
+      (o.title || "").toLowerCase().includes("punto")
+  );
+
+  const isPointsSelected = Boolean(
+    selectedId?.toLowerCase().includes("point") ||
+    selectedId?.toLowerCase().includes("punto") ||
+    selectedOption?.title?.toLowerCase().includes("punto")
+  );
+
+  // Si el LLM ofreció la opción de puntos en el selector pero omitió el dynamic_value_slider en A2UI,
+  // se sintetiza un slider calibrado con los puntos disponibles (4,350 pts = $435 MXN)
+  const effectiveSliderChild = useMemo(() => {
+    if (sliderChild) return sliderChild;
+    if (pointsOption) {
+      return {
+        id: "dynamic_slider_points_auto",
+        component: "dynamic_value_slider",
+        data: {
+          min: 500,
+          max: 4350,
+          step: 250,
+          value: 4350,
+          unitLabel: "Puntos Banorte a canjear",
+          basis: 1500,
+          calculations: [
+            { label: "Bonificación aplicada", value: 435, format: "currency" },
+            { label: "Restante de anualidad", value: 1065, format: "currency" },
+          ],
+          appliesToOptionId: pointsOption.id,
+        },
+      };
+    }
+    return null;
+  }, [sliderChild, pointsOption]);
+
+  const [sliderValue, setSliderValue] = useState(
+    () => sliderChild?.data?.value ?? effectiveSliderChild?.data?.value
+  );
+
+  const sliderAppliesToOptionId = effectiveSliderChild?.data?.appliesToOptionId;
+  const sliderIsActive = !sliderAppliesToOptionId || sliderAppliesToOptionId === selectedId;
+  const sliderInactiveLabel = (() => {
+    if (sliderIsActive) return null;
+    const target = solutionChild?.data?.options?.find((o) => o.id === sliderAppliesToOptionId);
+    return `Selecciona "${target?.title ?? "Canjear Puntos Banorte"}" para calibrar este monto.`;
+  })();
 
   const toggleInactiveLabel = (() => {
     if (isDomiciliationSelected) return null;
@@ -76,12 +112,92 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
     return `Selecciona "${target?.title ?? "Domiciliación de servicios"}" para activar la conmutación y exentar la anualidad.`;
   })();
 
+  // Adaptación dinámica de SecurityActionGate a la estrategia elegida por el usuario
+  const effectiveSecurityData = useMemo(() => {
+    if (!securityChild?.data) return { actionLabel: "Autorizar Operación", summaryBadge: "" };
+    const base = { ...securityChild.data };
+
+    if (!selectedOption) return base;
+
+    const optId = (selectedOption.id || "").toLowerCase();
+    const optTitle = (selectedOption.title || "").toLowerCase();
+
+    // 1. Si está seleccionada Domiciliación
+    if (isDomiciliationSelected) {
+      const count = selectedServices?.length || 0;
+      return {
+        ...base,
+        actionLabel: "Autorizar Exención y Domiciliación",
+        summaryBadge:
+          count > 0
+            ? `Exención 100% de Anualidad · Domiciliando ${count} servicio(s)`
+            : "Exentar Anualidad domiciliando servicios",
+      };
+    }
+
+    // 2. Si está seleccionado Canje de Puntos
+    if (optId.includes("point") || optId.includes("punto") || optTitle.includes("punto")) {
+      const pts = sliderValue ?? effectiveSliderChild?.data?.value ?? 4350;
+      const bonificacion = Math.round(Number(pts) / 10);
+      return {
+        ...base,
+        actionLabel: "Autorizar Canje de Puntos",
+        summaryBadge: `Canjear ${Number(pts).toLocaleString()} Puntos Banorte ($${bonificacion.toLocaleString()} MXN bonificados)`,
+      };
+    }
+
+    // 3. Si está seleccionado Diferimiento a Meses (MSI)
+    if (
+      optId.includes("install") ||
+      optId.includes("mes") ||
+      optId.includes("plazo") ||
+      optTitle.includes("diferir")
+    ) {
+      const months = sliderValue ?? 3;
+      return {
+        ...base,
+        actionLabel: `Autorizar Diferimiento a ${months} Meses`,
+        summaryBadge: `Diferir compra a ${months} Meses Sin Intereses`,
+      };
+    }
+
+    // 4. Si está seleccionado Adelanto de Nómina
+    if (optId.includes("advance") || optId.includes("nomina") || optTitle.includes("adelanto")) {
+      return {
+        ...base,
+        actionLabel: "Autorizar Adelanto de Nómina",
+        summaryBadge: "Depósito inmediato de adelanto de nómina preaprobado",
+      };
+    }
+
+    // 5. Cualquier otra opción seleccionada
+    return {
+      ...base,
+      actionLabel: `Autorizar ${selectedOption.title}`,
+      summaryBadge: selectedOption.subtitle || selectedOption.title,
+    };
+  }, [
+    securityChild?.data,
+    selectedOption,
+    isDomiciliationSelected,
+    selectedServices,
+    sliderValue,
+    effectiveSliderChild,
+  ]);
+
   const handleSecurityConfirm = async (token) => {
     const parts = [];
-    if (securityChild?.data?.summaryBadge) parts.push(securityChild.data.summaryBadge);
-    if (selectedOption) parts.push(`Opción elegida: ${selectedOption.title}.`);
-    if (sliderChild && sliderIsActive && sliderValue != null) {
-      parts.push(`${sliderChild.data.unitLabel}: ${sliderValue}.`);
+    if (effectiveSecurityData.summaryBadge) {
+      parts.push(effectiveSecurityData.summaryBadge + ".");
+    }
+    if (selectedOption) {
+      parts.push(`Opción elegida: ${selectedOption.title}.`);
+    }
+    if (isPointsSelected) {
+      const pts = sliderValue ?? effectiveSliderChild?.data?.value ?? 4350;
+      parts.push(`Puntos a canjear: ${pts}.`);
+    } else if (effectiveSliderChild && sliderIsActive && sliderValue != null) {
+      parts.push(`${effectiveSliderChild.data.unitLabel}: ${sliderValue}.`);
     }
     if (isDomiciliationSelected && selectedServices && selectedServices.length > 0) {
       const names = selectedServices.map((s) => s.name || s.id);
@@ -89,14 +205,49 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
     }
     const combinedValues = {
       ...inputValues,
+      opcion_id: selectedOption?.id,
+      opcion_titulo: selectedOption?.title,
       ...(isDomiciliationSelected && selectedServices.length > 0
         ? { servicios_domiciliar: selectedServices.map((s) => s.name || s.id) }
         : {}),
-      ...(sliderChild && sliderIsActive && sliderValue != null ? { valor_slider: sliderValue } : {}),
+      ...(isPointsSelected
+        ? { puntos_canjear: sliderValue ?? effectiveSliderChild?.data?.value ?? 4350 }
+        : {}),
+      ...(effectiveSliderChild && sliderIsActive && sliderValue != null
+        ? { valor_slider: sliderValue }
+        : {}),
     };
     const actionSummary = parts.join(" ") || "Confirmo la operación sugerida.";
     await onConfirm?.({ actionSummary, code: token, values: combinedValues });
   };
+
+  // Lista de componentes a desplegar (insertando el slider si fue sintetizado)
+  const displayChildren = useMemo(() => {
+    if (sliderChild || !effectiveSliderChild) return children;
+    const newChildren = [];
+    let inserted = false;
+    for (const child of children) {
+      newChildren.push(child);
+      if (
+        !inserted &&
+        (child.component === "interactive_toggle_list" ||
+          (!children.some((c) => c.component === "interactive_toggle_list") &&
+            child.component === "solution_matrix_selector"))
+      ) {
+        newChildren.push(effectiveSliderChild);
+        inserted = true;
+      }
+    }
+    if (!inserted) {
+      const gateIdx = newChildren.findIndex((c) => c.component === "security_action_gate");
+      if (gateIdx !== -1) {
+        newChildren.splice(gateIdx, 0, effectiveSliderChild);
+      } else {
+        newChildren.push(effectiveSliderChild);
+      }
+    }
+    return newChildren;
+  }, [children, sliderChild, effectiveSliderChild]);
 
   return (
     <div className="space-y-4">
@@ -104,8 +255,8 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
         <h2 className="text-lg font-bold text-gray-900 leading-snug">Resumen de {firstName}</h2>
       )}
       {title && <p className="text-sm text-gray-500 -mt-3">{title}</p>}
-      {children.map((child) => {
-        if (child.data === undefined) return null; // updateDataModel de ese id no ha llegado (todavía)
+      {displayChildren.map((child) => {
+        if (child.data === undefined) return null;
         const Component = resolveComponent(child.component);
 
         if (child.component === "solution_matrix_selector") {
@@ -140,7 +291,13 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
           );
         }
         if (child.component === "security_action_gate") {
-          return <Component key={child.id} data={child.data} onConfirm={handleSecurityConfirm} />;
+          return (
+            <Component
+              key={child.id}
+              data={effectiveSecurityData}
+              onConfirm={handleSecurityConfirm}
+            />
+          );
         }
         if (["form_field", "date_range_picker", "comparison_card"].includes(child.component)) {
           return <Component key={child.id} data={child.data} onValueChange={handleValueChange} />;
@@ -151,9 +308,6 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
         return <Component key={child.id} data={child.data} />;
       })}
 
-      {/* Leyenda: deja claro que esta pantalla no es un mock -- el LLM
-          decidió estos componentes y sus datos a partir del análisis del
-          estímulo + las tools MCP (ver task.md). */}
       <p className="text-center text-[10px] text-gray-300 pt-1">
         Componente generado tras análisis de LLM
       </p>

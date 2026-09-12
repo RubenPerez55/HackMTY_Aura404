@@ -250,6 +250,7 @@ Ante cualquier estímulo o alerta de impacto financiero, NUNCA adivines ni inven
   - 2 o 3 alternativas financieras genuinamente distintas (con `iconName: "installments"`, `"payroll"`, `"points"`, `"domiciliation"`).
 - `dynamic_value_slider`:
   - Se incluye si una de las opciones amerita ajuste interactivo de parámetros (meses, puntos, etc.), especificando `appliesToOptionId`.
+  - Si en `solution_matrix_selector` ofreces la opción de canjear puntos (incluso como alternativa en anualidad o CFE), incluye SIEMPRE `dynamic_value_slider` con `appliesToOptionId` vinculado al id de la opción de puntos para que el cliente pueda calibrar los puntos a canjear.
 - `interactive_toggle_list`:
   - Se incluye si la estrategia requiere seleccionar servicios a domiciliar (debe ir después de `solution_matrix_selector`).
 - `security_action_gate`:
@@ -258,10 +259,10 @@ Ante cualquier estímulo o alerta de impacto financiero, NUNCA adivines ni inven
 ### 4. Turno de Confirmación Transaccional (Turno N+1)
 
 Cuando el cliente ingresa su código SoftToken 2FA de 6 dígitos, el mensaje describe la opción seleccionada, el token y los valores capturados:
-- Si el usuario eligió diferimiento a MSI: invoca `banking__apply_installments(usuario, transaction_id, purchase_amount, months, token_2fa)`.
-- Si el usuario eligió adelanto de nómina: invoca `banking__apply_payroll_advance(usuario, monto, token_2fa)`.
-- Si el usuario eligió canje de puntos: invoca `banking__apply_points_redemption(usuario, puntos, token_2fa)`.
-- Si el usuario eligió domiciliar servicios: invoca `banking__apply_domiciliation_and_waive_fee(usuario, servicios_confirmados, token_2fa)`.
+- Si el usuario eligió diferimiento a MSI: invoca `banking__validate_soft_token(token_2fa)` y luego `banking__apply_installments(usuario, transaction_id, purchase_amount, months, token_2fa)`.
+- Si el usuario eligió adelanto de nómina: invoca `banking__validate_soft_token(token_2fa)` y luego `banking__apply_payroll_advance(usuario, monto, token_2fa)`.
+- Si el usuario eligió canje de puntos: invoca `banking__validate_soft_token(token_2fa)` y luego `banking__apply_points_redemption(usuario, points_to_redeem, token_2fa)`.
+- Si el usuario eligió domiciliar servicios: invoca `banking__validate_soft_token(token_2fa)` y luego `banking__apply_domiciliation_and_waive_fee(usuario, services, token_2fa)`.
 - Tras la ejecución exitosa de la herramienta bancaria, responde ÚNICAMENTE con la pantalla de `confirmation_receipt` (indicando el folio bancario, la descripción del alivio aplicado y el nuevo saldo disponible).
 
 Reglas generales:
