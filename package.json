@@ -11,6 +11,9 @@
     "probe": "npm --prefix mcp-agent run probe --",
     "smoke:banking": "npm --prefix mcp-agent run smoke:banking",
     "smoke:backend": "npm --prefix mcp-agent run smoke:backend",
+    "smoke:all": "npm run smoke:banking && npm run smoke:backend",
+    "validate:motor": "motor/.venv/bin/python motor/validar_motor.py",
+    "data:reset": "git checkout data/",
     "test:flow": "npm --prefix mcp-agent run test:flow --"
   }
 }
