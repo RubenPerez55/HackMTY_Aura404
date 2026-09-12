@@ -1,4 +1,6 @@
+import { execSync } from "node:child_process";
 import { readFileSync, statSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { csvToObjects, objectsToCsv, numOrNull, strOrNull } from "./csv.js";
@@ -197,6 +199,24 @@ export class BankDataSource {
 
   get dirPath(): string {
     return this.dir;
+  }
+
+  clearCache(): void {
+    this.cache.clear();
+    this.domiciliations.clear();
+  }
+
+  /**
+   * Restablece los archivos CSV de datos al estado base de git y limpia la caché.
+   */
+  resetData(): void {
+    try {
+      const repoRoot = resolve(this.dir, "..");
+      execSync("git checkout HEAD -- data/", { cwd: repoRoot, stdio: "pipe" });
+    } catch (err) {
+      console.warn("No se pudo restablecer data/ vía git checkout:", err);
+    }
+    this.clearCache();
   }
 
   private table(filename: string): Record<string, string>[] {

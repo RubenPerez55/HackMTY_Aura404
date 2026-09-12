@@ -98,3 +98,14 @@ export function subscribeToSession(sessionId, handlers = {}) {
 
   return () => es.close();
 }
+
+/**
+ * POST /api/data/reset -- restablece los archivos CSV de datos al estado base
+ * de git y purga la caché de memoria del backend.
+ */
+export async function resetData() {
+  const res = await fetch(`${API_BASE}/api/data/reset`, {
+    method: "POST",
+  });
+  return jsonOrThrow(res);
+}

@@ -10,6 +10,7 @@ import {
   sendMessage,
   triggerImpact,
   subscribeToSession,
+  resetData,
 } from "./api.js";
 
 // App.jsx es el "shell" de la app bancaria (ver frontend/README.md).
@@ -71,8 +72,48 @@ export default function App() {
   const [openBannerId, setOpenBannerId] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatDraft, setChatDraft] = useState("");
+  const [resettingData, setResettingData] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   const unsubscribersRef = useRef({});
+
+  const refreshUserData = async (userId = selectedUserId) => {
+    try {
+      const list = await listUsers();
+      setUsers(list);
+      const targetUser = userId ?? list[0]?.usuario;
+      if (targetUser) {
+        const txs = await listTransactions(targetUser, 5);
+        setTransactions(txs);
+      }
+    } catch (err) {
+      console.warn("Error al refrescar datos del usuario:", err);
+    }
+  };
+
+  const handleResetData = async () => {
+    try {
+      setResettingData(true);
+      setResetSuccess(false);
+      const res = await resetData();
+      if (res.users) {
+        setUsers(res.users);
+      } else {
+        const list = await listUsers();
+        setUsers(list);
+      }
+      if (selectedUserId) {
+        const txs = await listTransactions(selectedUserId, 5);
+        setTransactions(txs);
+      }
+      setResetSuccess(true);
+      setTimeout(() => setResetSuccess(false), 3000);
+    } catch (err) {
+      setConnectionError(`Error al reiniciar CSVs: ${err.message}`);
+    } finally {
+      setResettingData(false);
+    }
+  };
 
   // Carga inicial: usuarios reales del backend (capa de datos CSV).
   useEffect(() => {
@@ -130,6 +171,13 @@ export default function App() {
     const close = subscribeToSession(sessionId, {
       onTurnEnd: (data) => {
         const surface = resolveTurnSurface(data.ui);
+        // Si el agente emitió un comprobante de confirmación (acción ejecutada), actualizamos saldo y movimientos
+        if (
+          surface?.component === "confirmation_receipt" ||
+          JSON.stringify(data.ui || "").includes("confirmation_receipt")
+        ) {
+          refreshUserData();
+        }
         setBanners((prev) =>
           prev.map((b) => {
             if (b.id !== sessionId) return b;
@@ -198,6 +246,7 @@ export default function App() {
     closeSubscription(sessionId);
     setBanners((prev) => prev.filter((b) => b.id !== sessionId));
     setOpenBannerId(null);
+    refreshUserData();
     deleteSession(sessionId).catch(() => {
       // limpieza best-effort: si falla, no afecta la demo.
     });
@@ -261,6 +310,34 @@ export default function App() {
               {def.label}
             </button>
           ))}
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <button
+            onClick={handleResetData}
+            disabled={resettingData}
+            className="w-full text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-50 px-3 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <i
+              className={`fa-solid ${
+                resettingData
+                  ? "fa-circle-notch fa-spin"
+                  : resetSuccess
+                  ? "fa-check text-green-600"
+                  : "fa-rotate-left text-gray-500"
+              }`}
+            />
+            <span>
+              {resettingData
+                ? "Reiniciando..."
+                : resetSuccess
+                ? "¡Datos reiniciados!"
+                : "Reiniciar datos (Reset CSV)"}
+            </span>
+          </button>
+          <p className="text-[10px] text-gray-400 mt-1 text-center">
+            Restaura saldos y transacciones a su estado base
+          </p>
         </div>
       </aside>
 

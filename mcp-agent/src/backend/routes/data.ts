@@ -87,6 +87,24 @@ export function registerDataRoutes(app: FastifyInstance, deps: RouteDeps): void 
       cardStatus: [...STATUSES],
     });
   });
+
+  // POST /api/data/reset → restablece los CSVs al estado base y limpia la caché
+  app.post("/api/data/reset", async (_request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      data.resetData();
+      const users = data.listNames().map((name) => data.getUserContext(name)!);
+      return reply.send({
+        success: true,
+        message: "Datos CSV y caché reiniciados al estado base.",
+        users,
+      });
+    } catch (err: unknown) {
+      return reply.code(500).send({
+        error: "Error al reiniciar los datos CSV",
+        details: err instanceof Error ? err.message : String(err),
+      });
+    }
+  });
 }
 
 function clampLimit(limit: number | undefined): number | undefined {
