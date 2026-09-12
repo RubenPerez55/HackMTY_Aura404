@@ -223,12 +223,20 @@ Ante cualquier estímulo o alerta de impacto financiero, NUNCA adivines ni inven
     - Ante un sobrecosto en recibo de servicio: amortizar con puntos de fidelidad evita pagar de más; si los puntos no alcanzan, se puede combinar o pagar en débito.
     - Ante una anualidad por vencer: domiciliar servicios recurrentes permite exentar el 100% de la anualidad ahorrando la comisión completa.
 
-### 3. Composición Visual A2UI Coherente y Contextual
+### 3. Composición Visual A2UI Coherente y Jerarquía Lógica
+
+- **Jerarquía de Componentes (`children`):**
+  Ordena siempre los componentes de lo general a lo específico:
+  1. Diagnóstico / Situación (`metric_delta_header` y `trend_history_chart` si amerita).
+  2. Elección de Estrategia (`solution_matrix_selector`).
+  3. Calibración o Conmutación de la Estrategia elegida (`dynamic_value_slider` o `interactive_toggle_list`).
+  4. Cierre Transaccional (`security_action_gate`).
+  *Colocar siempre `solution_matrix_selector` antes de `interactive_toggle_list` o `dynamic_value_slider` asegura que el usuario primero elija la estrategia deseada y luego ajuste los parámetros o servicios de dicha opción.*
 
 - `metric_delta_header`:
   - En shocks de liquidez o gastos médicos (donde no existe un consumo mensual habitual de referencia): utiliza `baselineLabel: "Saldo anterior"`, `currentValue: <monto_gasto>`, `baselineValue: <saldo_previo>`, y en `deltaText` resume el impacto en el saldo disponible y los días que faltan para la nómina (ej. `"Consumió el 49% de tu saldo disponible previo · Faltan 3 días para nómina"`).
   - En picos de consumo recurrente (ej. CFE): compara el monto actual contra el consumo histórico habitual (`baselineLabel: "Promedio habitual"`, `deltaText: "+X% vs consumo habitual"`).
-  - En anualidad bancaria: destaca el monto de la comisión y los días restantes antes del cargo.
+  - En anualidad bancaria: destaca el monto de la comisión en `currentValue` y los días restantes antes del cargo en `deltaText` (no repitas el mismo valor en `baselineValue`).
 - `trend_history_chart`:
   - Para anomalías de servicios: 2 barras (`Promedio histórico` vs `Este mes` con `isAnomaly: true`).
   - Para shocks de liquidez: 2 barras comparativas (`Saldo crítico actual` vs `Saldo con Plan Alivio` proyectado).
@@ -237,7 +245,7 @@ Ante cualquier estímulo o alerta de impacto financiero, NUNCA adivines ni inven
 - `dynamic_value_slider`:
   - Se incluye si una de las opciones amerita ajuste interactivo de parámetros (meses, puntos, etc.), especificando `appliesToOptionId`.
 - `interactive_toggle_list`:
-  - Se incluye si la estrategia requiere seleccionar servicios a domiciliar.
+  - Se incluye si la estrategia requiere seleccionar servicios a domiciliar (debe ir después de `solution_matrix_selector`).
 - `security_action_gate`:
   - Cierra la pantalla para autorizar la operación vía SoftToken 2FA.
 

@@ -3,7 +3,7 @@ import { useState } from "react";
 // Lista interactiva de servicios candidatos para domiciliación (spec.md RF-01.2, RF-03.2).
 // Permite al usuario conmutar qué servicios domiciliar y recalcula en vivo
 // la exención de la anualidad a $0.00 MXN en el cliente.
-export default function InteractiveToggleList({ data, onChange, onToggle }) {
+export default function InteractiveToggleList({ data, onChange, onToggle, inactiveLabel, disabled }) {
   const [selectedIds, setSelectedIds] = useState(() => {
     const initial = new Set();
     data?.items?.forEach((item) => {
@@ -12,7 +12,19 @@ export default function InteractiveToggleList({ data, onChange, onToggle }) {
     return initial;
   });
 
+  if (inactiveLabel) {
+    return (
+      <div className="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4 opacity-60">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+          Servicios para domiciliación
+        </p>
+        <p className="text-xs text-gray-500">{inactiveLabel}</p>
+      </div>
+    );
+  }
+
   const handleToggle = (id) => {
+    if (disabled) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -115,7 +127,7 @@ export default function InteractiveToggleList({ data, onChange, onToggle }) {
                   </p>
                   <p className="text-[10px] text-gray-400 mt-0.5">
                     ${item.amount.toLocaleString()} MXN/mes · hoy vía{" "}
-                    {item.currentPaymentMethod}
+                    {item.currentPaymentMethod || item.currentPaymentPaymentMethod || "Pago manual"}
                   </p>
                 </div>
               </div>

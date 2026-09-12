@@ -52,6 +52,7 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
   };
 
   const firstName = userName?.trim().split(/\s+/)[0];
+  const selectedOption = solutionChild?.data?.options?.find((o) => o.id === selectedId);
   const sliderAppliesToOptionId = sliderChild?.data?.appliesToOptionId;
   const sliderIsActive = !sliderAppliesToOptionId || sliderAppliesToOptionId === selectedId;
   const sliderInactiveLabel = (() => {
@@ -60,21 +61,37 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
     return `Selecciona "${target?.title ?? "la opción correspondiente"}" para ajustar este monto.`;
   })();
 
+  const isDomiciliationSelected =
+    !solutionChild ||
+    Boolean(
+      selectedId?.toLowerCase().includes("domicil") ||
+      selectedOption?.title?.toLowerCase().includes("domicili")
+    );
+
+  const toggleInactiveLabel = (() => {
+    if (isDomiciliationSelected) return null;
+    const target = solutionChild?.data?.options?.find((o) =>
+      (o.id || "").toLowerCase().includes("domicil") || (o.title || "").toLowerCase().includes("domicili")
+    );
+    return `Selecciona "${target?.title ?? "Domiciliación de servicios"}" para activar la conmutación y exentar la anualidad.`;
+  })();
+
   const handleSecurityConfirm = async (token) => {
-    const selectedOption = solutionChild?.data?.options?.find((o) => o.id === selectedId);
     const parts = [];
     if (securityChild?.data?.summaryBadge) parts.push(securityChild.data.summaryBadge);
     if (selectedOption) parts.push(`Opción elegida: ${selectedOption.title}.`);
     if (sliderChild && sliderIsActive && sliderValue != null) {
       parts.push(`${sliderChild.data.unitLabel}: ${sliderValue}.`);
     }
-    if (selectedServices && selectedServices.length > 0) {
+    if (isDomiciliationSelected && selectedServices && selectedServices.length > 0) {
       const names = selectedServices.map((s) => s.name || s.id);
       parts.push(`Servicios confirmados para domiciliar: ${names.join(", ")}.`);
     }
     const combinedValues = {
       ...inputValues,
-      ...(selectedServices.length > 0 ? { servicios_domiciliar: selectedServices.map((s) => s.name || s.id) } : {}),
+      ...(isDomiciliationSelected && selectedServices.length > 0
+        ? { servicios_domiciliar: selectedServices.map((s) => s.name || s.id) }
+        : {}),
       ...(sliderChild && sliderIsActive && sliderValue != null ? { valor_slider: sliderValue } : {}),
     };
     const actionSummary = parts.join(" ") || "Confirmo la operación sugerida.";
@@ -107,6 +124,8 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
               key={child.id}
               data={child.data}
               onChange={setSelectedServices}
+              inactiveLabel={toggleInactiveLabel}
+              disabled={!isDomiciliationSelected}
             />
           );
         }
