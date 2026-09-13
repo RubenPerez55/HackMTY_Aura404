@@ -266,29 +266,73 @@ export default function App() {
                 );
 
                 if (Array.isArray(surface.children)) {
-                  const hasAction = surface.children.some(
-                    (c) => c.component === "solution_matrix_selector" || c.component === "security_action_gate"
+                  const hasSolution = surface.children.some(
+                    (c) => c.component === "solution_matrix_selector" || c.component === "interactive_toggle_list"
                   );
-                  if (!hasAction && prevAction.length > 0) {
+                  const hasGate = surface.children.some(
+                    (c) => c.component === "security_action_gate"
+                  );
+
+                  if (hasSolution) {
+                    // El agente trajo soluciones NUEVAS (el usuario pidió otra opción o alternativa).
+                    // Reemplazan a las soluciones anteriores.
+                    // Si el LLM omitió el security_action_gate, lo preservamos para que pueda autorizar.
+                    if (!hasGate) {
+                      const prevGate = prevAction.find((c) => c.component === "security_action_gate");
+                      if (prevGate) {
+                        effectiveSurface = {
+                          ...surface,
+                          children: [...surface.children, prevGate],
+                        };
+                      }
+                    }
+                  } else {
+                    // No trajo soluciones nuevas (es una gráfica, tabla o métrica de consulta analítica).
+                    // Preservamos las soluciones de la pantalla anterior para no dejarlo varado.
+                    if (prevAction.length > 0) {
+                      effectiveSurface = {
+                        ...surface,
+                        children: [...surface.children, ...prevAction],
+                      };
+                    }
+                  }
+                } else if (surface.component !== "surface_root") {
+                  const isSolutionComponent =
+                    surface.component === "solution_matrix_selector" ||
+                    surface.component === "interactive_toggle_list";
+                  const prevGate = prevAction.find((c) => c.component === "security_action_gate");
+
+                  if (isSolutionComponent) {
+                    // El agente devolvió directamente un nuevo selector de soluciones
                     effectiveSurface = {
-                      ...surface,
-                      children: [...surface.children, ...prevAction],
+                      surfaceId: surface.surfaceId,
+                      component: "surface_root",
+                      title: surface.title || b.surface.title || "Nuevas opciones de solución",
+                      children: [
+                        {
+                          id: "solution_inquiry",
+                          component: surface.component,
+                          data: surface.data,
+                        },
+                        ...(prevGate ? [prevGate] : []),
+                      ],
+                    };
+                  } else if (prevAction.length > 0) {
+                    // Es un componente analítico (gráfica, tabla, etc.)
+                    effectiveSurface = {
+                      surfaceId: surface.surfaceId,
+                      component: "surface_root",
+                      title: surface.title || b.surface.title || "Análisis de impacto financiero",
+                      children: [
+                        {
+                          id: "chart_inquiry",
+                          component: surface.component,
+                          data: surface.data,
+                        },
+                        ...prevAction,
+                      ],
                     };
                   }
-                } else if (surface.component !== "surface_root" && prevAction.length > 0) {
-                  effectiveSurface = {
-                    surfaceId: surface.surfaceId,
-                    component: "surface_root",
-                    title: surface.title || b.surface.title || "Análisis de impacto financiero",
-                    children: [
-                      {
-                        id: "chart_inquiry",
-                        component: surface.component,
-                        data: surface.data,
-                      },
-                      ...prevAction,
-                    ],
-                  };
                 }
               }
 

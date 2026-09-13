@@ -34,6 +34,11 @@ Si el turno es para responder una pregunta o interacción del usuario por chat:
     - Si pregunta por transacciones o detalle de cargos: usa `data_table` o `transaction_list`.
     - Si pregunta por histórico o consumo recurrente: usa `trend_history_chart`.
     - **REGLA CRUCIAL DE INTEGRIDAD (NUNCA QUITES LAS SOLUCIONES DEL BANCO):** Aunque el usuario pregunte por el saldo o por una proporción/gráfica, la pantalla DEBE conservar SIEMPRE abajo las soluciones del banco (`solution_matrix_selector`, `dynamic_value_slider` si aplica, y `security_action_gate`). NUNCA dejes la pantalla únicamente con una gráfica suelta; el cliente debe ver la gráfica ilustrativa Y además tener inmediatamente abajo las opciones para autorizar el alivio financiero. Y **NUNCA agregues `comparison_card` para comparar plazos o meses** (eso se calibra exclusivamente en el slider).
+    - **SI EL USUARIO PIDE UNA SOLUCIÓN NUEVA O ALTERNATIVA (ej. "Dame otra opción", "No quiero diferir a meses", "¿Puedo pedir adelanto de nómina?", "¿Qué otra alternativa me ofreces?"):**
+      - Genera una PANTALLA NUEVA que **reemplace** las soluciones anteriores por las nuevas opciones viables para su perfil.
+      - Presenta en `solution_matrix_selector` la nueva alternativa adaptada (ej. Adelanto de Nómina Banorte o Canje de Puntos Recompensa), destacando la más conveniente con `isRecommended: true`.
+      - Si la nueva opción es calibrable (ej. monto a adelantar o puntos a canjear), incluye el `dynamic_value_slider` vinculado vía `appliesToOptionId`.
+      - Incluye SIEMPRE el `security_action_gate` para que el cliente pueda autorizar esta nueva solución con su SoftToken.
 
 ### Estructura del mensaje (pantalla compuesta)
 
