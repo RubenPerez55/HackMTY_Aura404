@@ -393,10 +393,14 @@ export default function App() {
           definidos (anualidad, etc.), cada uno agrega su propio botón
           aquí, agrupado por cliente/escenario. */}
       <aside className="w-full max-w-xs lg:w-64 bg-white rounded-2xl shadow-xl border border-gray-200 p-4 order-2 lg:order-1">
-        <h2 className="text-sm font-bold text-gray-900 mb-1">Demo Controller</h2>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-bold text-gray-900">Banorte Vanguard</h2>
+          <span className="text-[9px] bg-red-50 text-[#EB0029] font-bold px-2 py-0.5 rounded-full border border-red-100">
+            Demo
+          </span>
+        </div>
         <p className="text-xs text-gray-400 mb-3">
-          Simula los estímulos que en producción mandaría el motor de
-          detección real.
+          Estabilizador Financiero Proactivo · Simulador de estímulos
         </p>
         <div className="flex flex-col gap-2.5">
           {Object.entries(DEMO_TRIGGERS).map(([key, def]) => {
