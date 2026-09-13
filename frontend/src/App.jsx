@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Modal from "./components/Modal.jsx";
 import AlertBanner from "./components/AlertBanner.jsx";
+import QuickActions from "./components/QuickActions.jsx";
 import FormattedChatMessage from "./components/FormattedChatMessage.jsx";
 import A2uiSurfaceView from "./a2ui/A2uiSurfaceView.jsx";
 import { createInitialState, applyA2uiMessages, listSurfaces } from "./a2ui/reducer.js";
 import {
   listUsers,
   listTransactions,
+  listSessions,
   deleteSession,
   sendMessage,
   triggerImpact,
@@ -515,6 +517,9 @@ export default function App() {
           </div>
         </header>
 
+        {/* Barra de operaciones rápidas de Banorte Móvil */}
+        <QuickActions />
+
         {connectionError && (
           <div className="mx-5 mt-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs rounded-xl p-3">
             No se pudo conectar al backend ({connectionError}). ¿Está corriendo
@@ -648,10 +653,11 @@ export default function App() {
             <A2uiSurfaceView
               surface={openBanner.surface}
               userName={openBanner.userId}
+              pending={openBanner.status === "thinking"}
               onConfirm={(payload) => handleSurfaceConfirm(openBanner, payload)}
               onCancel={closeModal}
             />
-            {openBanner.status === "thinking" && (
+            {openBanner.status === "thinking" && !chatOpen && (
               <p className="text-xs text-gray-400 text-center mt-3">
                 <i className="fa-solid fa-circle-notch fa-spin mr-1" />
                 Actualizando...
@@ -668,13 +674,26 @@ export default function App() {
               {!chatOpen ? (
                 <button
                   onClick={() => setChatOpen(true)}
-                  className="w-full text-xs text-gray-500 font-semibold py-2"
+                  className="w-full text-xs text-gray-500 hover:text-gray-700 font-semibold py-2 flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <i className="fa-regular fa-comment-dots mr-1" />
+                  <i className="fa-regular fa-comment-dots" />
                   ¿Tienes dudas? Pregúntale al agente
                 </button>
               ) : (
                 <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-400 font-semibold">
+                      <i className="fa-regular fa-comment-dots mr-1" />
+                      ¿Tienes dudas?
+                    </span>
+                    <button
+                      onClick={() => setChatOpen(false)}
+                      aria-label="Ocultar chat"
+                      className="text-gray-400 hover:text-gray-600 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <i className="fa-solid fa-xmark text-xs" />
+                    </button>
+                  </div>
                   {openBanner.chatLog.length > 0 && (
                     <div className="max-h-32 overflow-y-auto space-y-2 mb-2">
                       {openBanner.chatLog.map((entry, i) => (
@@ -691,6 +710,14 @@ export default function App() {
                       ))}
                     </div>
                   )}
+                  {openBanner.status === "thinking" && (
+                    <div className="mb-2">
+                      <p className="text-xs rounded-xl px-3 py-2 max-w-[85%] bg-gray-100 text-gray-500 italic">
+                        <i className="fa-solid fa-circle-notch fa-spin mr-1" />
+                        El agente está respondiendo...
+                      </p>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -698,11 +725,13 @@ export default function App() {
                       onChange={(e) => setChatDraft(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAskQuestion()}
                       placeholder="Ej. ¿de dónde viene ese cobro?"
-                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm"
+                      disabled={openBanner.status === "thinking"}
+                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-400"
                     />
                     <button
                       onClick={handleAskQuestion}
-                      className="bg-gray-900 text-white text-sm font-semibold px-4 rounded-xl"
+                      disabled={openBanner.status === "thinking"}
+                      className="bg-gray-900 disabled:bg-gray-300 text-white text-sm font-semibold px-4 rounded-xl transition-colors"
                     >
                       Enviar
                     </button>

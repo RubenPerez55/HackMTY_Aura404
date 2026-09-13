@@ -86,6 +86,8 @@ export class TurnRunner {
         console.warn(
           `[a2ui] turno ${sessionId}#${turnNumber}: respuesta tratada como texto plano -- ${parsedUi.reason}`,
         );
+      } else {
+        session.ui = parsedUi.messages;
       }
 
       bus.emit({

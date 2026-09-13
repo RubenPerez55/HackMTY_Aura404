@@ -4,11 +4,12 @@ import { useState } from "react";
 // que se va a autorizar y, al confirmar, despliega su propio panel de
 // SoftToken 2FA -- es el único punto de la pantalla que dispara una
 // acción real contra el backend (`onConfirm`, async).
-export default function SecurityActionGate({ data, onConfirm }) {
+export default function SecurityActionGate({ data, pending, onConfirm }) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const isBusy = loading || pending;
 
   const handleConfirm = async () => {
     if (!/^\d{6}$/.test(code)) {
@@ -47,18 +48,25 @@ export default function SecurityActionGate({ data, onConfirm }) {
             placeholder="000000"
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            disabled={loading}
+            disabled={isBusy}
             className="w-full text-center text-2xl tracking-[0.5em] font-bold border border-gray-700 bg-gray-800 text-white rounded-xl py-3 mb-2"
           />
           {error && <p className="text-xs text-red-400 mb-2">{error}</p>}
           <button
             onClick={handleConfirm}
-            disabled={loading}
-            className="w-full bg-[#EB0029] disabled:bg-gray-600 text-white font-semibold py-3 rounded-2xl mb-2"
+            disabled={isBusy}
+            className="w-full bg-[#EB0029] disabled:bg-gray-600 text-white font-semibold py-3 rounded-2xl mb-2 flex items-center justify-center gap-2"
           >
-            {loading ? "Procesando..." : "Confirmar"}
+            {isBusy ? (
+              <>
+                <i className="fa-solid fa-circle-notch fa-spin" />
+                Procesando...
+              </>
+            ) : (
+              "Confirmar"
+            )}
           </button>
-          {!loading && (
+          {!isBusy && (
             <button
               onClick={() => {
                 setOpen(false);

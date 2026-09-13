@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 import type { LlmMessage } from "../../llm/types.js";
+import type { A2uiMessage } from "../../agent/a2ui-contract.js";
 
 export interface SessionRecord {
   id: string;
@@ -15,6 +16,8 @@ export interface SessionRecord {
   turns: number;
   status: "idle" | "running" | "error";
   lastError?: string;
+  /** Última pantalla A2UI resuelta con éxito en esta sesión. */
+  ui?: A2uiMessage[] | null;
 }
 
 export interface SessionStore {

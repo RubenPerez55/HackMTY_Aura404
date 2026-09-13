@@ -15,7 +15,7 @@ import { resolveComponent } from "../components/componentRegistry.js";
  *  - security_action_gate: adapta su botón y badge al producto/estrategia
  *    financiera seleccionada en tiempo real.
  */
-export default function ComposedScreen({ userName, title, children, onConfirm }) {
+export default function ComposedScreen({ userName, title, children, pending, onConfirm }) {
   const solutionChild = children.find((c) => c.component === "solution_matrix_selector");
   const securityChild = children.find((c) => c.component === "security_action_gate");
   const toggleChild = children.find((c) => c.component === "interactive_toggle_list");
@@ -407,6 +407,7 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
             <Component
               key={child.id}
               data={effectiveSecurityData}
+              pending={pending}
               onConfirm={handleSecurityConfirm}
             />
           );

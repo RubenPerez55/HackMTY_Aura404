@@ -51,9 +51,22 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Flujo de prueba (dos terminales)
+## Flujo de prueba (tres terminales)
 
-**Terminal 1 — generador de historial y motor a la escucha:**
+El motor publica cada impacto detectado al backend real (BFF) vía HTTP
+(`POST /api/triggers/impact`, ver `publisher.py`) -- para que ese trigger
+realmente arranque al agente y se vea en la app, el backend debe estar
+corriendo. `MOTOR_BACKEND_URL` (`config.py`) apunta por defecto a
+`http://127.0.0.1:4000`, el mismo puerto que usa `mcp-agent` (`BFF_PORT`).
+
+**Terminal 1 — backend (BFF + agente):**
+
+```bash
+cd ../mcp-agent
+npm run serve
+```
+
+**Terminal 2 — generador de historial y motor a la escucha:**
 
 ```bash
 source .venv/bin/activate
@@ -61,7 +74,7 @@ python data_gen.py              # regenera las 3 tablas (transacciones) o solo m
 python motor.py                 # quedarse en escucha (Ctrl+C para salir)
 ```
 
-**Terminal 2 — insertar transacciones:**
+**Terminal 3 — insertar transacciones:**
 
 ```bash
 source .venv/bin/activate

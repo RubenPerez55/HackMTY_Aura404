@@ -234,26 +234,50 @@ def agregar_transaccion(
     descripcion: str,
     fecha: str | None = None,
 ) -> pd.Series:
+    # OJO: antes esta función armaba un pd.Series de solo 6 columnas (el
+    # esquema viejo) y lo anexaba con `to_csv(..., header=False)` -- un
+    # append 100% posicional. En cuanto `motor.py` corre una vez (llama a
+    # `migrar_csv()` y reescribe el header a las 18 columnas canónicas de
+    # `models.COLUMNAS`), ese append quedaba desalineado: la fila nueva
+    # tenía 6 valores bajo un header de 18, corrompiendo el CSV para
+    # cualquier lector posterior. Ahora se usa el mismo escritor
+    # consciente-del-esquema que usa el resto del motor (`models.py`),
+    # así el CSV queda consistente sin importar si ya fue migrado o no.
+    from models import Transaction, append_transaccion, migrar_csv
+
     df = _leer_existente()
     if df.empty and not RUTA_CSV.exists():
         df = generar_historial(filas_por_usuario=60)
         df = _leer_existente()
 
-    fecha = fecha or dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    nueva = pd.Series(
+    fecha_dt = dt.datetime.now() if fecha is None else dt.datetime.fromisoformat(fecha)
+    nuevo_id = _siguiente_id(df)
+
+    # Garantiza el header canónico ANTES de anexar (igual que hace
+    # `motor.py` al arrancar) -- si no, `append_transaccion` calcularía
+    # columnas de más sin haber migrado las filas ya existentes.
+    migrar_csv()
+
+    transaccion = Transaction(
+        id_transaccion=str(nuevo_id),
+        usuario=usuario,
+        fecha=fecha_dt,
+        monto=float(monto),
+        categoria=categoria,
+        descripcion=descripcion,
+    )
+    append_transaccion(transaccion)
+
+    return pd.Series(
         {
-            "id_transaccion": _siguiente_id(df),
+            "id_transaccion": nuevo_id,
             "usuario": usuario,
-            "fecha": fecha,
+            "fecha": fecha_dt.strftime("%Y-%m-%d %H:%M:%S"),
             "categoria": categoria,
             "monto": float(monto),
             "descripcion": descripcion,
         }
     )
-
-    fila = pd.DataFrame([nueva])
-    fila.to_csv(RUTA_CSV, mode="a", header=False, index=False, encoding="utf-8")
-    return nueva
 
 
 def generar_usuarios_bancario(path: str | None = None) -> pd.DataFrame:

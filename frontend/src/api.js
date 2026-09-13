@@ -28,6 +28,16 @@ export async function listTransactions(usuario, limit = 5) {
   return body.transactions;
 }
 
+/**
+ * GET /api/sessions?userId=... -- todas las sesiones activas de un
+ * usuario (incluye las que el motor de detección real disparó por su
+ * cuenta vía POST /api/triggers/impact).
+ */
+export async function listSessions(userId) {
+  const res = await fetch(`${API_BASE}/api/sessions?userId=${encodeURIComponent(userId)}`);
+  return jsonOrThrow(res);
+}
+
 /** POST /api/sessions -- abre una conversación nueva para un usuario. */
 export async function createSession(userId, title) {
   const res = await fetch(`${API_BASE}/api/sessions`, {
