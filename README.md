@@ -1,57 +1,128 @@
-# Hackatón MCP — Reto Banorte (Aura404)
+# Banorte Vanguard — Prototipo HackMTY (Aura404)
 
-Repositorio de preparación para el hackatón. El reto es abierto en servicios
-financieros: **agentes de IA que generan interfaces en tiempo real**, usando
-**MCP (Model Context Protocol)** como pieza obligatoria.
+> **Reto Banorte × Tec de Monterrey:** Interfaces que la IA construye en tiempo real (A2UI + Model Context Protocol).
 
-El reto oficial de Banorte × Tec de Monterrey ya llegó: **"Interfaces que
-la IA construye en tiempo real"** — un agente (LLM + MCP + A2UI) que no
-solo responde, sino que genera y transmite la interfaz que resuelve el
-problema financiero de quien pregunta, dentro de un caso de uso libre de
-servicios/productos financieros. El análisis completo está en
-`docs/02-banorte-contexto/`.
+**Banorte Vanguard** es un estabilizador financiero proactivo que detecta anomalías de gasto y quiebres de liquidez, orquestando soluciones bancarias hiperpersonalizadas (Planes Alivio a Meses Sin Intereses, Adelanto de Nómina y Domiciliación de Servicios con Condonación de Anualidad). A través de un motor de IA que combina LLM (Gemini), MCP y componentes dinámicos A2UI, la aplicación construye la interfaz en tiempo real y permite autorizar acciones críticas mediante **SoftToken (Human-in-the-Loop)**.
 
-## Estructura
+---
+
+## 📋 Requisitos Previos
+
+* **Node.js:** Versión 18 o superior (`node -v`).
+* **npm:** Versión 9 o superior (`npm -v`).
+* **API Key de Gemini:** Clave de API de [Google AI Studio](https://aistudio.google.com/).
+
+---
+
+## ⚙️ Configuración del Entorno
+
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/RubenPerez55/HackMTY_Aura404.git
+   cd HackMTY_Aura404
+   ```
+
+2. **Configurar variables de entorno del backend:**
+   Copia el archivo de plantilla `.env.example` dentro de `mcp-agent/`:
+   ```bash
+   cp mcp-agent/.env.example mcp-agent/.env
+   ```
+   Abre `mcp-agent/.env` y coloca tu API Key de Gemini:
+   ```env
+   LLM_PROVIDER=openai-compatible
+   LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+   LLM_MODEL=gemini-2.5-flash
+   GEMINI_API_KEY=tu-api-key-de-gemini-aqui
+   ```
+
+3. **Instalar dependencias:**
+   ```bash
+   # Dependencias del backend / agente MCP
+   npm --prefix mcp-agent install
+
+   # Dependencias del frontend móvil React
+   npm --prefix frontend install
+   ```
+
+---
+
+## 🚀 Instrucciones para Correr la Aplicación
+
+Para ejecutar la demo completa en modo desarrollo necesitas **dos terminales** activas:
+
+### Terminal 1: Backend Orquestador + Servidor MCP
+Inicia el orquestador BFF y el servidor bancario MCP (escuchando en `http://localhost:4000`):
+```bash
+npm run dev:backend
+```
+
+### Terminal 2: Frontend (Banorte Vanguard Móvil)
+Inicia el servidor de desarrollo de Vite (escuchando en `http://localhost:5173`):
+```bash
+npm run dev
+```
+
+Abre en tu navegador: **`http://localhost:5173`**
+
+*(La aplicación incluye un proxy en Vite que redirige automáticamente todas las peticiones `/api` al backend en el puerto 4000).*
+
+---
+
+## 🧪 Pruebas y Comprobaciones de Calidad
+
+El proyecto cuenta con una suite completa de pruebas de integración y verificación:
+
+* **Ejecutar todas las pruebas (MCP + Backend SSE):**
+  ```bash
+  npm run smoke:all
+  ```
+  *Verifica las 13 operaciones bancarias MCP (consultas, simulaciones, domiciliaciones y autorizaciones SoftToken) y el ciclo de vida de sesiones SSE.*
+
+* **Compilación de producción (TypeScript + Vite):**
+  ```bash
+  npm run build:all
+  ```
+  *Verifica 0 errores de tipado y empaqueta frontend y backend para producción.*
+
+* **Restaurar datos sintéticos de prueba:**
+  Si realizaste transacciones de prueba que alteraron los saldos en los CSV mock (`data/`):
+  ```bash
+  npm run data:reset
+  ```
+
+---
+
+## 📱 Cómo Probar los Escenarios de la Demo
+
+Una vez abierta la aplicación (`http://localhost:5173`), utiliza el panel lateral **Demo Controller**:
+
+1. **Escenario 1 — Gasto Extraordinario en Salud (Hospital Ángeles):**
+   * Haz clic en *"Gasto Médico Mayor"*.
+   * Observa el **Smart Action Banner** en el dashboard. Al tocarlo, el agente genera la pantalla A2UI con la métrica del impacto, el plan a Meses Sin Intereses (MSI) y el slider interactivo.
+   * Puedes interactuar en el chat preguntando: *"¿Qué tanto me comió este pago de mi saldo?"* o *"¿Cómo quedan los meses?"*.
+   * Selecciona el plazo deseado y autoriza con el botón de **SoftToken** usando el código sugerido en pantalla.
+2. **Escenario 2 — Sobrecosto en Servicio y Anualidad (CFE / Tarjeta):**
+   * Alterna al usuario Rubén Pérez o haz clic en *"Sobrecosto CFE"*.
+   * El agente desplegará la comparativa de consumo histórico con `TrendHistoryChart`, ofreciendo la domiciliación para condonar el 100% de la anualidad bancaria.
+3. **Escenario 3 — Rescate de Liquidez pre-nómina:**
+   * Simula y autoriza un **Adelanto de Nómina** inmediato calibrando el monto con el slider interactivo.
+
+---
+
+## 📂 Estructura del Repositorio
 
 ```
-hackaton-MCP/
-├── README.md
-└── docs/
-    ├── 00-fundamentos-mcp/       → Qué es MCP, arquitectura, comunicación, piezas
-    ├── 01-agentic-ui-frontend/   → Enfoque de Rubén: Agentic UI, componentes reutilizables
-    ├── 02-banorte-contexto/      → Resumen del reto oficial + preguntas + decisiones del equipo
-    └── 03-arquitectura-tecnica/  → Arquitectura de referencia (diagrama) + catálogo de componentes
-frontend/                          → Scaffold React + Vite del demo (ver frontend/README.md)
-spec.md                            → Especificación funcional del feature "Banorte ShockAbsorber"
+├── data/                          # CSVs de datos bancarios sintéticos (usuarios, tarjetas, transacciones)
+├── frontend/                      # Aplicación React + Vite + Tailwind (Shell móvil Banorte + lienzo A2UI)
+│   ├── src/a2ui/                  # Renderizador dinámico y catálogo de componentes A2UI
+│   ├── src/components/            # Componentes visuales (gráficas de dona, tendencias, sliders, tablas)
+│   └── src/App.jsx                # Orquestador del ciclo de vida del cliente y chat
+├── mcp-agent/                     # Backend TypeScript + Servidor MCP + Orquestador
+│   ├── src/agent/                 # Definición del agente LLM y contrato de esquemas A2UI (Zod)
+│   ├── src/backend/               # Servidor Fastify (REST + SSE)
+│   ├── src/mcp/                   # Servidor MCP Bancario con herramientas Human-in-the-Loop
+│   └── task.md                    # System prompt y directivas de generación del agente
+├── docs/                          # Documentación técnica de arquitectura y diseño
+├── spec.md                        # Especificación funcional de requerimientos (RF)
+└── ARCHITECTURE.md                # Contrato sagrado de arquitectura del sistema
 ```
-
-## Cómo leer esto
-
-1. Empieza por `docs/00-fundamentos-mcp/01-que-es-mcp.md` y sigue el orden
-   numérico de esa carpeta.
-2. Luego pasa a `docs/01-agentic-ui-frontend/`, que es la parte de frontend
-   / Agentic UI (el rol de Rubén en el equipo) y ya incluye correcciones y
-   notas sobre conceptos que se estaban entendiendo mal.
-3. `docs/02-banorte-contexto/` tiene el resumen del reto oficial
-   (`01-resumen-del-reto.md`) y las preguntas organizadas para hacerle a
-   Banorte antes de arrancar a diseñar (`02-preguntas-para-banorte.md`).
-
-## Estado
-
-- [x] Fundamentos de MCP documentados
-- [x] Enfoque de Agentic UI / frontend documentado
-- [x] Contexto oficial del reto de Banorte (analizado y documentado)
-- [x] Primera ronda de preguntas respondidas por especialistas de Banorte
-- [x] Caso de uso concreto definido: "golpe financiero de quincena" (CFE +
-      anualidad de tarjeta), con hiperpersonalización como eje central
-- [x] Especificación funcional formal del feature (`spec.md` — "Banorte
-      ShockAbsorber")
-- [x] Arquitectura de referencia documentada (`docs/03-arquitectura-tecnica/`)
-- [x] Catálogo de componentes básicos definido y primer scaffold de
-      frontend (React + Vite) funcionando con datos sintéticos
-- [ ] Preguntas técnicas pendientes (A2UI, datos — ver
-      `docs/02-banorte-contexto/02-preguntas-para-banorte.md`)
-- [ ] Investigación de A2UI (spec formal vs. protocolo propio)
-- [ ] Servidor MCP real + motor de detección de anomalías (aún no hay
-      backend, solo el frontend con datos mock)
-- [ ] Repositorio git inicializado
