@@ -26,25 +26,27 @@ export default function TrendHistoryChart({ data }) {
 
   return (
     <div className="bg-gray-50 rounded-2xl p-4">
-      <div className="flex items-end justify-between gap-2 h-28">
+      <div className="flex items-end justify-between gap-3 h-28">
         {data.bars.map((bar, i) => {
-          const heightPct = Math.max(6, (bar.amount / max) * 100);
+          const heightPct = Math.max(6, Math.min(100, (bar.amount / max) * 100));
           const colorClass = bar.isAnomaly
             ? "bg-[#EB0029]"
             : bar.isProjected
               ? "bg-gray-300 border-2 border-dashed border-gray-400"
               : "bg-gray-300";
           return (
-            <div key={`${bar.label}-${i}`} className="flex-1 flex flex-col items-center justify-end h-full">
-              <span className="text-[9px] text-gray-500 mb-1">
+            <div key={`${bar.label}-${i}`} className="flex-1 flex flex-col items-center h-full">
+              <span className="text-[10px] font-medium text-gray-500 mb-1 shrink-0">
                 {data.currency}
                 {Math.round(bar.amount).toLocaleString()}
               </span>
-              <div
-                className={`w-full rounded-t-md ${colorClass}`}
-                style={{ height: `${heightPct}%` }}
-              />
-              <span className="text-[9px] text-gray-400 mt-1 truncate max-w-full">
+              <div className="w-full flex-1 flex items-end justify-center">
+                <div
+                  className={`w-full rounded-t-md ${colorClass} transition-all duration-300`}
+                  style={{ height: `${heightPct}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-gray-400 mt-1 truncate max-w-full text-center shrink-0">
                 {bar.label}
               </span>
             </div>
