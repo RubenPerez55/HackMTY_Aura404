@@ -17,10 +17,11 @@ services:
     healthCheckPath: /api/health
 
   # 2. Frontend React / Vite (Static Site - CDN rápido sin cold starts)
-  - type: static_site
+  - type: web
     name: banorte-vanguard-frontend
+    runtime: static
     buildCommand: npm install && npm --prefix frontend install && npm --prefix frontend run build
-    publishDir: frontend/dist
+    staticPublishPath: ./frontend/dist
     routes:
       - type: rewrite
         source: /*
