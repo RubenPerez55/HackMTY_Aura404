@@ -331,6 +331,7 @@ export const ComponentDataSchemas = {
     title: z.string(),
     current: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
     target: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+    targetLabel: z.string().optional(),
     currency: z.string().optional(),
     description: z.string().optional(),
   }),
