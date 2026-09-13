@@ -176,7 +176,7 @@ export async function loadBackendConfig(
 
   return {
     host: env.BFF_HOST ?? "0.0.0.0",
-    port: Number(env.BFF_PORT ?? 4000),
+    port: Number(env.PORT ?? env.BFF_PORT ?? 4000),
     storeFile: env.BFF_STORE_FILE || undefined,
     dataDir: env.DATA_DIR || undefined,
     llm,

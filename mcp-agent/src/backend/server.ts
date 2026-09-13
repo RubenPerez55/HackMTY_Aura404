@@ -58,7 +58,7 @@ export async function buildServer(
   const llm = overrides.llm ?? (base?.llm as LlmProvider);
   const policy = overrides.policy ?? (base?.policy as AgentPolicy);
   const host = overrides.host ?? base?.host ?? env.BFF_HOST ?? "0.0.0.0";
-  const port = overrides.port ?? base?.port ?? Number(env.BFF_PORT ?? 4000);
+  const port = overrides.port ?? base?.port ?? Number(env.PORT ?? env.BFF_PORT ?? 4000);
   const storeFile = overrides.storeFile ?? base?.storeFile;
   const mcpServers = overrides.mcpServers ?? base?.mcpServers ?? [];
   const dataDir = overrides.dataDir ?? base?.dataDir;

@@ -1,0 +1,27 @@
+services:
+  # 1. Backend Fastify BFF + Servidor MCP Bancario (Web Service)
+  - type: web
+    name: banorte-vanguard-backend
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm --prefix mcp-agent install && npm --prefix mcp-agent run build
+    startCommand: npm --prefix mcp-agent run serve
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: BFF_HOST
+        value: 0.0.0.0
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /api/health
+
+  # 2. Frontend React / Vite (Static Site - CDN rápido sin cold starts)
+  - type: static_site
+    name: banorte-vanguard-frontend
+    buildCommand: npm install && npm --prefix frontend install && npm --prefix frontend run build
+    publishDir: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
