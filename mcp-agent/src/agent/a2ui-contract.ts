@@ -246,7 +246,7 @@ export const ComponentDataSchemas = {
       key: z.string(),
       label: z.string(),
       sortable: z.boolean().optional(),
-      align: z.enum(["left", "right"]).optional(),
+      align: z.enum(["left", "center", "right"]).optional(),
       format: z.enum(["text", "number", "currency", "percent", "date"]).optional(),
       currency: z.string().optional(),
       total: z.literal("sum").optional(),
