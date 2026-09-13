@@ -249,7 +249,23 @@ export default function App() {
             if (b.id !== sessionId) return b;
             if (surface) {
               // Llegó pantalla nueva/actualizada: reemplaza la anterior.
-              return { ...b, status: "ready", surface, errorMessage: null };
+              const isChatTurn = b.status === "thinking";
+              const updatedChatLog = isChatTurn
+                ? [
+                    ...b.chatLog,
+                    {
+                      role: "agent",
+                      text: "He actualizado la interfaz con los componentes y datos correspondientes a tu petición.",
+                    },
+                  ]
+                : b.chatLog;
+              return {
+                ...b,
+                status: "ready",
+                surface,
+                errorMessage: null,
+                chatLog: updatedChatLog,
+              };
             }
             // Turno de solo texto (p. ej. el usuario preguntó algo por
             // chat): NO se pierde la pantalla que ya estaba mostrando.
