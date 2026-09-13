@@ -33,7 +33,7 @@ Si el turno es para responder una pregunta o interacción del usuario por chat:
     - Si pregunta por desglose o categorías de gasto: usa `donut_chart` o `spending_chart`.
     - Si pregunta por transacciones o detalle de cargos: usa `data_table` o `transaction_list`.
     - Si pregunta por histórico o consumo recurrente: usa `trend_history_chart`.
-    - **REGLA CRUCIAL DE INTEGRIDAD:** Conserva SIEMPRE en la pantalla los componentes completos de decisión y autorización (`solution_matrix_selector`, `dynamic_value_slider` si aplica, y `security_action_gate`). NUNCA reduzcas la pantalla a una tarjeta aislada; la pantalla debe permitir al usuario ver la respuesta visual Y autorizar la solución directamente en los controles interactivos.
+    - **REGLA CRUCIAL DE INTEGRIDAD Y NO DUPLICIDAD:** Conserva SIEMPRE en la pantalla los componentes completos de decisión y autorización (`solution_matrix_selector`, `dynamic_value_slider` si aplica, y `security_action_gate`). NUNCA reduzcas la pantalla a una tarjeta aislada, y **NUNCA agregues `comparison_card` para comparar plazos o meses** (Plan 3 Meses vs. Plan 6 Meses): eso confunde al usuario con dos selectores tipo radio duplicados. El plazo de meses se elige EXCLUSIVAMENTE en el slider `dynamic_value_slider`.
 
 ### Estructura del mensaje (pantalla compuesta)
 
@@ -232,6 +232,7 @@ Ante cualquier estímulo o alerta de impacto financiero, NUNCA adivines ni inven
 - **Diversidad Real de Soluciones en `solution_matrix_selector`:**
   - Las opciones que presentes en el selector DEBEN ser **estrategias o productos financieros fundamentalmente distintos** (por ejemplo: `Diferir compra a Meses Sin Intereses` vs. `Adelanto de Nómina Inmediato` vs. `Canjear Puntos Banorte` vs. `Liquidación ordinaria en débito`).
   - **PROHIBIDO:** Incluir en el selector opciones que sean meras variaciones de un mismo parámetro numérico (ejemplo: NUNCA pongas "Plan 3 Meses" y "Plan 6 Meses" como dos opciones separadas en el selector si vas a incluir un slider de meses; eso es redundante).
+  - **PROHIBIDO USAR `comparison_card` PARA PLAZOS O MESES:** NUNCA uses `comparison_card` para comparar plazos (ej. "Plan 3 Meses" vs "Plan 6 Meses") cuando ya estás usando `solution_matrix_selector` y `dynamic_value_slider`. `comparison_card` es un selector tipo radio que compite y confunde la decisión del usuario. La selección de meses se realiza EXCLUSIVAMENTE mediante `dynamic_value_slider`.
   - **División de Responsabilidades (Selector vs. Slider):**
     - El selector (`solution_matrix_selector`) es para que el usuario elija **QUÉ estrategia o mecanismo financiero** desea adoptar.
     - El slider (`dynamic_value_slider`) es para que el usuario ajuste **el parámetro cuantitativo** de dicha estrategia (por ejemplo: el plazo en meses de 3 a 12 para un diferimiento, o la cantidad de puntos a canjear).

@@ -249,13 +249,13 @@ export default function App() {
             if (b.id !== sessionId) return b;
             if (surface) {
               // Llegó pantalla nueva/actualizada: reemplaza la anterior.
-              const isChatTurn = b.status === "thinking";
+              const isChatTurn = Boolean(b.chatAwaitingReply);
               const updatedChatLog = isChatTurn
                 ? [
                     ...b.chatLog,
                     {
                       role: "agent",
-                      text: "He actualizado la interfaz con los componentes y datos correspondientes a tu petición.",
+                      text: "¡Listo! Actualicé tu pantalla con las opciones y datos para que los revises.",
                     },
                   ]
                 : b.chatLog;
@@ -264,6 +264,7 @@ export default function App() {
                 status: "ready",
                 surface,
                 errorMessage: null,
+                chatAwaitingReply: false,
                 chatLog: updatedChatLog,
               };
             }
@@ -273,6 +274,7 @@ export default function App() {
               ...b,
               status: "ready",
               errorMessage: null,
+              chatAwaitingReply: false,
               chatLog: [...b.chatLog, { role: "agent", text: data.finalAnswer || "(sin respuesta)" }],
             };
           }),
@@ -388,13 +390,22 @@ export default function App() {
     setBanners((prev) =>
       prev.map((b) =>
         b.id === openBanner.id
-          ? { ...b, status: "thinking", chatLog: [...b.chatLog, { role: "user", text }] }
+          ? {
+              ...b,
+              status: "thinking",
+              chatAwaitingReply: true,
+              chatLog: [...b.chatLog, { role: "user", text }],
+            }
           : b,
       ),
     );
     setChatDraft("");
     sendMessage(openBanner.id, text).catch((err) =>
-      patchBanner(openBanner.id, { status: "error", errorMessage: err.message }),
+      patchBanner(openBanner.id, {
+        status: "error",
+        errorMessage: err.message,
+        chatAwaitingReply: false,
+      }),
     );
   };
 
