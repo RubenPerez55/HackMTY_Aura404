@@ -248,7 +248,50 @@ export default function App() {
           prev.map((b) => {
             if (b.id !== sessionId) return b;
             if (surface) {
-              // Llegó pantalla nueva/actualizada: reemplaza la anterior.
+              // Llegó pantalla nueva/actualizada.
+              // Si la nueva surface no es un recibo final y no trae componentes de acción (selector/gate),
+              // preservamos las soluciones de la pantalla anterior para que el cliente siempre pueda actuar.
+              let effectiveSurface = surface;
+              if (
+                surface.component !== "confirmation_receipt" &&
+                b.surface?.children
+              ) {
+                const prevAction = b.surface.children.filter((c) =>
+                  [
+                    "solution_matrix_selector",
+                    "dynamic_value_slider",
+                    "interactive_toggle_list",
+                    "security_action_gate",
+                  ].includes(c.component)
+                );
+
+                if (Array.isArray(surface.children)) {
+                  const hasAction = surface.children.some(
+                    (c) => c.component === "solution_matrix_selector" || c.component === "security_action_gate"
+                  );
+                  if (!hasAction && prevAction.length > 0) {
+                    effectiveSurface = {
+                      ...surface,
+                      children: [...surface.children, ...prevAction],
+                    };
+                  }
+                } else if (surface.component !== "surface_root" && prevAction.length > 0) {
+                  effectiveSurface = {
+                    surfaceId: surface.surfaceId,
+                    component: "surface_root",
+                    title: surface.title || b.surface.title || "Análisis de impacto financiero",
+                    children: [
+                      {
+                        id: "chart_inquiry",
+                        component: surface.component,
+                        data: surface.data,
+                      },
+                      ...prevAction,
+                    ],
+                  };
+                }
+              }
+
               const isChatTurn = Boolean(b.chatAwaitingReply);
               const updatedChatLog = isChatTurn
                 ? [
@@ -262,7 +305,7 @@ export default function App() {
               return {
                 ...b,
                 status: "ready",
-                surface,
+                surface: effectiveSurface,
                 errorMessage: null,
                 chatAwaitingReply: false,
                 chatLog: updatedChatLog,
