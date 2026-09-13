@@ -10,6 +10,14 @@ import DynamicValueSlider from "./DynamicValueSlider.jsx";
 import InteractiveToggleList from "./InteractiveToggleList.jsx";
 import SecurityActionGate from "./SecurityActionGate.jsx";
 import LineGraph from "./LineGraph.jsx";
+import LineChart from "./LineChart.jsx";
+import BarChart from "./BarChart.jsx";
+import DonutChart from "./DonutChart.jsx";
+import BeforeAfterVisual from "./BeforeAfterVisual.jsx";
+import FinancialProgressVisual from "./FinancialProgressVisual.jsx";
+import DataConfidenceBadge from "./DataConfidenceBadge.jsx";
+import InsightCard from "./InsightCard.jsx";
+import SurveyForm from "./SurveyForm.jsx";
 import GenericJsonView from "./GenericJsonView.jsx";
 import BalanceCard from "./BalanceCard.jsx";
 import TransactionList from "./TransactionList.jsx";
@@ -50,7 +58,14 @@ export const componentRegistry = {
   metric_delta_header: MetricDeltaHeader,
   trend_history_chart: TrendHistoryChart,
   line_graph: LineGraph,
-  line_chart: LineGraph,
+  line_chart: LineChart,
+  bar_chart: BarChart,
+  donut_chart: DonutChart,
+  before_after_visual: BeforeAfterVisual,
+  financial_progress_visual: FinancialProgressVisual,
+  data_confidence_badge: DataConfidenceBadge,
+  insight_card: InsightCard,
+  survey_form: SurveyForm,
   solution_matrix_selector: SolutionMatrixSelector,
   dynamic_value_slider: DynamicValueSlider,
   interactive_toggle_list: InteractiveToggleList,

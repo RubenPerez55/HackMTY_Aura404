@@ -34,6 +34,24 @@ export const A2UI_CATALOG_ID = "banorte-shockabsorber";
 /** Nombre reservado del nodo contenedor: agrupa componentes hijos, sin datos propios. */
 export const ROOT_COMPONENT = "surface_root";
 
+const chartFormat = z.enum(["number", "currency", "percent"]);
+const cartesianFields = {
+  title: z.string(),
+  subtitle: z.string().optional(),
+  currency: z.string().optional(),
+  format: chartFormat.optional(),
+  labels: z.array(z.string()).max(60),
+  series: z.array(
+    z.object({
+      label: z.string(),
+      values: z.array(z.number().finite().nullable()).max(60),
+      isProjected: z.boolean().optional(),
+    }),
+  ).min(1).max(6),
+};
+const matchingSeries = (value: { labels: string[]; series: { values: (number | null)[] }[] }) =>
+  value.series.every((series) => series.values.length === value.labels.length);
+
 /**
  * Componentes "hoja" -- cada uno con su propio `value` validado. Ver
  * docs/03-arquitectura-tecnica/02-catalogo-componentes.md para el
@@ -78,23 +96,28 @@ export const ComponentDataSchemas = {
     anomalyLabel: z.string().optional(),
     currency: z.string().optional().default("MXN"),
   }),
-  line_chart: z.object({
-    title: z.string().optional(),
+  line_chart: z.object(cartesianFields).refine(matchingSeries, {
+    message: "Cada serie debe tener un valor por etiqueta; usa null para datos faltantes.",
+  }),
+  bar_chart: z
+    .object({ ...cartesianFields, mode: z.enum(["grouped", "stacked"]).optional() })
+    .refine(matchingSeries, { message: "Cada serie debe tener un valor por etiqueta." }),
+  donut_chart: z.object({
+    title: z.string(),
     subtitle: z.string().optional(),
-    points: z
+    currency: z.string().optional(),
+    format: z.enum(["number", "currency"]).optional(),
+    categories: z
       .array(
         z.object({
           label: z.string(),
-          value: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
-          isAnomaly: z.boolean().optional(),
+          amount: z.union([
+            z.number().finite().nonnegative(),
+            z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, ""))).refine((n) => Number.isFinite(n) && n >= 0),
+          ]),
         }),
       )
-      .optional(),
-    baseline: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]).optional(),
-    baselineLabel: z.string().optional(),
-    anomalyValue: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]).optional(),
-    anomalyLabel: z.string().optional(),
-    currency: z.string().optional().default("MXN"),
+      .max(6),
   }),
   solution_matrix_selector: z.object({
     options: z.array(
@@ -216,10 +239,17 @@ export const ComponentDataSchemas = {
     endDate: z.string().optional(), minDate: z.string().optional(), maxDate: z.string().optional(),
   }),
   data_table: z.object({
-    title: z.string(), pageSize: z.number().int().positive().max(50).optional(),
+    title: z.string(),
+    currency: z.string().optional(),
+    pageSize: z.number().int().positive().max(50).optional(),
     columns: z.array(z.object({
-      key: z.string(), label: z.string(), sortable: z.boolean().optional(),
+      key: z.string(),
+      label: z.string(),
+      sortable: z.boolean().optional(),
       align: z.enum(["left", "right"]).optional(),
+      format: z.enum(["text", "number", "currency", "percent", "date"]).optional(),
+      currency: z.string().optional(),
+      total: z.literal("sum").optional(),
     })).min(1),
     rows: z.array(z.record(z.unknown())),
   }),
@@ -238,7 +268,7 @@ export const ComponentDataSchemas = {
     name: z.string().optional(), title: z.string(), selectedId: z.string().optional(),
     options: z.array(z.object({
       id: z.string(), title: z.string(), subtitle: z.string().optional(), recommended: z.boolean().optional(),
-      metrics: z.array(z.object({ label: z.string(), value: z.string() })).min(1),
+      metrics: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.number()]) })).min(1),
     })).min(2),
   }),
   document_preview: z.object({
@@ -260,6 +290,59 @@ export const ComponentDataSchemas = {
       id: z.string(), label: z.string(), status: z.enum(["complete", "current", "pending"]),
     })).min(1),
     actionLabel: z.string().optional(), actionId: z.string().optional(), actionSummary: z.string().optional(),
+  }),
+  survey_form: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    submitLabel: z.string(),
+    submitActionId: z.string().optional(),
+    submitSummary: z.string().optional(),
+    fields: z
+      .array(
+        z.object({
+          name: z.string(),
+          label: z.string(),
+          type: z.enum(["text", "number", "currency", "email", "tel", "select"]),
+          value: z.union([z.string(), z.number()]).optional(),
+          placeholder: z.string().optional(),
+          required: z.boolean().optional(),
+          min: z.number().optional(),
+          max: z.number().optional(),
+          options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+        }),
+      )
+      .min(1)
+      .max(20),
+  }),
+  data_confidence_badge: z.object({
+    status: z.enum(["verified", "estimated", "incomplete"]),
+    label: z.string().optional(),
+    source: z.string().optional(),
+    note: z.string().optional(),
+  }),
+  insight_card: z.object({
+    title: z.string(),
+    description: z.string(),
+    details: z.array(z.string()).max(8).optional(),
+    iconName: z.string().optional(),
+    actionLabel: z.string().optional(),
+  }),
+  financial_progress_visual: z.object({
+    title: z.string(),
+    current: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+    target: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+    currency: z.string().optional(),
+    description: z.string().optional(),
+  }),
+  before_after_visual: z.object({
+    title: z.string(),
+    before: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+    after: z.union([z.number(), z.string().transform((v) => Number(v.replace(/[^0-9.-]/g, "")))]),
+    beforeLabel: z.string().optional(),
+    afterLabel: z.string().optional(),
+    description: z.string().optional(),
+    currency: z.string().optional(),
+    format: z.enum(["number", "currency", "percent"]).optional(),
   }),
 
   // --- catálogo "monolítico" original (legacy) ---

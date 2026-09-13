@@ -414,6 +414,9 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
         if (["form_field", "date_range_picker", "comparison_card"].includes(child.component)) {
           return <Component key={child.id} data={child.data} onValueChange={handleValueChange} />;
         }
+        if (child.component === "survey_form") {
+          return <Component key={child.id} data={child.data} onSubmit={handleAction} />;
+        }
         if (
           [
             "recommendation_card",
@@ -421,6 +424,7 @@ export default function ComposedScreen({ userName, title, children, onConfirm })
             "empty_state",
             "error_state",
             "approval_flow",
+            "insight_card",
           ].includes(child.component)
         ) {
           return <Component key={child.id} data={child.data} onAction={handleAction} />;

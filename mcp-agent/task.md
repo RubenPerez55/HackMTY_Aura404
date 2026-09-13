@@ -116,6 +116,14 @@ Reglas de estructura:
   ej. "Gasto habitual"), `anomalyValue` (number, opcional), `anomalyLabel`
   (string, opcional), `currency` (string, default "MXN"). Gráfica continua de
   línea con ejes con flechas y detección de pico anómalo de gasto/consumo.
+- `line_chart`: evolución temporal multi-serie. `title`, `subtitle?`, `labels` (hasta 60 etiquetas ordenadas), `series` (1 a 6 objetos `{ label, values, isProjected? }`), `format?` (`number`, `currency`, `percent`), `currency?` (`MXN`).
+- `bar_chart`: comparativas en barras agrupadas o apiladas. Mismas propiedades que `line_chart`; `mode?` (`grouped` o `stacked`).
+- `donut_chart`: proporciones y desglose de gastos en dona. `title`, `subtitle?`, `currency?`, `format?`, `categories` (hasta 6 objetos `{ label, amount }`).
+- `before_after_visual`: comparativa visual directa de dos columnas (Antes vs Después en rojo Banorte). `title`, `before`, `after`, `beforeLabel?`, `afterLabel?`, `description?`, `currency?`, `format?`. Ideal para mostrar el alivio de liquidez o el gasto antes vs después de la solución sugerida.
+- `financial_progress_visual`: barra de progreso con porcentaje destacado y metas. `title`, `current`, `target`, `currency?`, `description?`.
+- `data_confidence_badge`: insignia de certidumbre institucional. `status` (`verified`, `estimated`, `incomplete`), `label?`, `source?` (ej. "Core Bancario"), `note?`.
+- `insight_card`: tarjeta de hallazgos con viñetas y botón de acción opcional. `title`, `description`, `details?`, `iconName?`, `actionLabel?`.
+- `survey_form`: formulario dinámico con validación de rangos. `title`, `description?`, `submitLabel`, `fields`.
 - `solution_matrix_selector`: `options` (array de `{ id, title,
   subtitle, tag?, recommended?, iconName? }` -- si usas `recommended: true`, NO pongas "Recomendado" en `tag`, usa `tag` solo para beneficios adicionales como "Sin comisión" o simplemente omítelo; intenta poner `iconName`
   con uno de: `points`, `installments`, `domiciliation` [si no aplica
