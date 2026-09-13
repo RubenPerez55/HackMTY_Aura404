@@ -74,23 +74,67 @@ export class OpenAICompatibleLlmProvider implements LlmProvider {
       tools: tools.map((tool) => this.toOpenAITool(tool)),
     };
 
-    const response = await fetch(`${this.baseURL.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
+    const maxRetries = 3;
+    let lastError: Error | null = null;
 
-    const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      throw new Error(
-        `El LLM respondió ${response.status}: ${JSON.stringify(data).slice(0, 500)}`,
-      );
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(`${this.baseURL.replace(/\/$/, "")}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+          body: JSON.stringify(body),
+        });
+
+        const data = await response.json().catch(() => null);
+        if (response.ok) {
+          return this.parseTurn((data as OpenAICompatibleResponse) ?? null);
+        }
+
+        const status = response.status;
+        const isTransient = status === 503 || status === 429 || status === 502 || status === 504 || status === 500;
+        lastError = new Error(
+          `El LLM respondió ${status}: ${JSON.stringify(data).slice(0, 500)}`,
+        );
+
+        if (isTransient && attempt < maxRetries) {
+          const delayMs = attempt * 1500;
+          console.warn(
+            `[llm:retry] Error transitorio (${status}) en intento ${attempt}/${maxRetries}. Reintentando en ${delayMs}ms...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+          continue;
+        }
+
+        throw lastError;
+      } catch (err) {
+        // Si ya es un error no transitorio lanzado explícitamente, relanzarlo
+        if (err === lastError && attempt >= maxRetries) {
+          throw err;
+        }
+
+        lastError = err instanceof Error ? err : new Error(String(err));
+        const isNetworkError =
+          lastError.message.includes("fetch failed") ||
+          lastError.message.includes("network") ||
+          lastError.message.includes("ECONNRESET");
+
+        if (isNetworkError && attempt < maxRetries) {
+          const delayMs = attempt * 1500;
+          console.warn(
+            `[llm:retry] Error de red en intento ${attempt}/${maxRetries}: ${lastError.message}. Reintentando en ${delayMs}ms...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+          continue;
+        }
+
+        throw lastError;
+      }
     }
 
-    return this.parseTurn((data as OpenAICompatibleResponse) ?? null);
+    throw lastError ?? new Error("No se pudo completar la llamada al LLM tras varios intentos.");
   }
 
   /* ------------------------------------------------------------------ */
